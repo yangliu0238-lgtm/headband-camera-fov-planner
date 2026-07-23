@@ -998,6 +998,13 @@ html&gt;body{padding:0}&lt;/style&gt;
       stroke: var(--muted-foreground);
       stroke-width: 1;
     }
+    #side-camera-contour-planner .camera-baseline {
+      fill: none;
+      stroke: var(--muted-foreground);
+      stroke-width: 1.2;
+      stroke-dasharray: 4 4;
+      opacity: 0.82;
+    }
     #side-camera-contour-planner .coordinate-axis {
       fill: none;
       stroke: var(--muted-foreground);
@@ -1128,6 +1135,15 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;line id=&quot;scp-ls-tangent&quot; class=&quot;tangent&quot;&gt;&lt;/line&gt;
       &lt;line id=&quot;scp-rs-tangent&quot; class=&quot;tangent&quot;&gt;&lt;/line&gt;
 
+      &lt;g id=&quot;scp-camera-baselines&quot; aria-label=&quot;相机圆心连线距离&quot;&gt;
+        &lt;line id=&quot;scp-baseline-ls-lf&quot; class=&quot;camera-baseline&quot;&gt;&lt;/line&gt;
+        &lt;line id=&quot;scp-baseline-rf-rs&quot; class=&quot;camera-baseline&quot;&gt;&lt;/line&gt;
+        &lt;line id=&quot;scp-baseline-ls-rs&quot; class=&quot;camera-baseline&quot;&gt;&lt;/line&gt;
+        &lt;text id=&quot;scp-baseline-ls-lf-label&quot; class=&quot;secondary-label&quot; text-anchor=&quot;middle&quot;&gt;&lt;/text&gt;
+        &lt;text id=&quot;scp-baseline-rf-rs-label&quot; class=&quot;secondary-label&quot; text-anchor=&quot;middle&quot;&gt;&lt;/text&gt;
+        &lt;text id=&quot;scp-baseline-ls-rs-label&quot; class=&quot;secondary-label&quot; text-anchor=&quot;middle&quot;&gt;&lt;/text&gt;
+      &lt;/g&gt;
+
       &lt;g id=&quot;scp-fov-cross-markers&quot; aria-label=&quot;相邻相机FOV边界射线交点&quot;&gt;&lt;/g&gt;
 
       &lt;path id=&quot;scp-dimension&quot; class=&quot;measure&quot;&gt;&lt;/path&gt;
@@ -1200,8 +1216,20 @@ html&gt;body{padding:0}&lt;/style&gt;
             &lt;/tr&gt;
             &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;光心坐标&lt;/th&gt;&lt;td id=&quot;scp-ls-coordinate&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-coordinate&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
             &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;实际偏航&lt;/th&gt;&lt;td id=&quot;scp-ls-yaw&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-yaw&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
-            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;相邻基线&lt;/th&gt;&lt;td id=&quot;scp-ls-baseline&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-baseline&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
             &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;共同视野&lt;/th&gt;&lt;td id=&quot;scp-ls-overlap&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-overlap&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+
+      &lt;h3 class=&quot;section-title&quot;&gt;相机圆心连线距离&lt;/h3&gt;
+      &lt;div class=&quot;table-responsive&quot;&gt;
+        &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;相机圆心之间的实时连线距离&quot;&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;相机组合&lt;/th&gt;&lt;th class=&quot;text-end&quot;&gt;圆心距离 (mm)&lt;/th&gt;&lt;th&gt;说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LF — RF&lt;/th&gt;&lt;td id=&quot;scp-distance-lf-rf&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td&gt;固定前视基线&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LS — LF&lt;/th&gt;&lt;td id=&quot;scp-distance-ls-lf&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td&gt;随 LS 位置变化&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;RF — RS&lt;/th&gt;&lt;td id=&quot;scp-distance-rf-rs&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td&gt;随 RS 位置变化&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LS — RS&lt;/th&gt;&lt;td id=&quot;scp-distance-ls-rs&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td&gt;侧边相机间距&lt;/td&gt;&lt;/tr&gt;
           &lt;/tbody&gt;
         &lt;/table&gt;
       &lt;/div&gt;
@@ -1498,6 +1526,28 @@ html&gt;body{padding:0}&lt;/style&gt;
         line.setAttribute(&#x27;y2&#x27;, format(end.y));
       }
 
+      function cameraDistance(first, second) {
+        return Math.hypot(first.x - second.x, first.y - second.y);
+      }
+
+      function setBaseline(id, first, second, distance, labelOffset) {
+        const start = map(first);
+        const end = map(second);
+        const line = byId(&#x27;scp-baseline-&#x27; + id);
+        line.setAttribute(&#x27;x1&#x27;, format(start.x));
+        line.setAttribute(&#x27;y1&#x27;, format(start.y));
+        line.setAttribute(&#x27;x2&#x27;, format(end.x));
+        line.setAttribute(&#x27;y2&#x27;, format(end.y));
+
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const label = byId(&#x27;scp-baseline-&#x27; + id + &#x27;-label&#x27;);
+        label.setAttribute(&#x27;x&#x27;, format((start.x + end.x) / 2 - dy / length * labelOffset));
+        label.setAttribute(&#x27;y&#x27;, format((start.y + end.y) / 2 + dx / length * labelOffset));
+        label.textContent = format(distance) + &#x27; mm&#x27;;
+      }
+
       function cameraVisible(point, camera) {
         const angle = deg(Math.atan2(point.x - camera.x, point.y - camera.y));
         return Math.abs(wrap(angle - camera.yaw)) &lt;= camera.fov / 2 + 1e-8;
@@ -1738,6 +1788,19 @@ html&gt;body{padding:0}&lt;/style&gt;
 
         setTangent(&#x27;ls&#x27;, ls);
         setTangent(&#x27;rs&#x27;, rs);
+        const centerDistances = {
+          lfRf: cameraDistance(cameras.lf, cameras.rf),
+          lsLf: cameraDistance(cameras.ls, cameras.lf),
+          rfRs: cameraDistance(cameras.rf, cameras.rs),
+          lsRs: cameraDistance(cameras.ls, cameras.rs)
+        };
+        byId(&#x27;scp-distance-lf-rf&#x27;).textContent = format(centerDistances.lfRf);
+        byId(&#x27;scp-distance-ls-lf&#x27;).textContent = format(centerDistances.lsLf);
+        byId(&#x27;scp-distance-rf-rs&#x27;).textContent = format(centerDistances.rfRs);
+        byId(&#x27;scp-distance-ls-rs&#x27;).textContent = format(centerDistances.lsRs);
+        setBaseline(&#x27;ls-lf&#x27;, cameras.ls, cameras.lf, centerDistances.lsLf, -10);
+        setBaseline(&#x27;rf-rs&#x27;, cameras.rf, cameras.rs, centerDistances.rfRs, -10);
+        setBaseline(&#x27;ls-rs&#x27;, cameras.ls, cameras.rs, centerDistances.lsRs, 12);
         updateFovBoundaryIntersections(cameras);
 
         const distanceMeters = Number(byId(&#x27;scp-distance&#x27;).value);
@@ -1754,7 +1817,6 @@ html&gt;body{padding:0}&lt;/style&gt;
           byId(&#x27;scp-&#x27; + side.id + &#x27;-offset-value&#x27;).textContent = (side.offset &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;) + format(side.offset) + &#x27;°&#x27;;
           byId(&#x27;scp-&#x27; + side.id + &#x27;-coordinate&#x27;).textContent = &#x27;(&#x27; + format(recorded.x) + &#x27;, &#x27; + format(recorded.y) + &#x27;) mm&#x27;;
           byId(&#x27;scp-&#x27; + side.id + &#x27;-yaw&#x27;).textContent = (side.yaw &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;) + format(side.yaw) + &#x27;°&#x27;;
-          byId(&#x27;scp-&#x27; + side.id + &#x27;-baseline&#x27;).textContent = format(Math.hypot(side.x - front.x, side.y - front.y)) + &#x27; mm&#x27;;
           byId(&#x27;scp-&#x27; + side.id + &#x27;-overlap&#x27;).textContent = format(angularOverlap(side, front, distanceMm)) + &#x27;°&#x27;;
           byId(&#x27;scp-&#x27; + side.id + &#x27;-position&#x27;).setAttribute(&#x27;aria-valuetext&#x27;, format(side.position) + &#x27;%&#x27;);
           byId(&#x27;scp-&#x27; + side.id + &#x27;-offset&#x27;).setAttribute(&#x27;aria-valuetext&#x27;, format(side.offset) + &#x27;°，实际偏航 &#x27; + format(side.yaw) + &#x27;°&#x27;);
