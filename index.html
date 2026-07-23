@@ -1,0 +1,2038 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>头环相机 FOV 规划器</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;max-width:736px;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts allow-downloads" referrerpolicy="no-referrer" title="头环相机 FOV 规划器" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Side Camera Contour Planner&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(--background) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: light-dark(rgb(255 255 255), rgb(24 24 24));
+  --foreground: light-dark(rgb(26 28 31), rgb(255 255 255));
+  --card: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --card-foreground: var(--foreground);
+  --popover: light-dark(rgb(255 255 255), rgb(45 45 45));
+  --popover-foreground: var(--foreground);
+  --primary: light-dark(rgb(51 156 255), rgb(131 195 255));
+  --primary-foreground: light-dark(rgb(255 255 255), rgb(13 13 13));
+  --secondary: light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%));
+  --secondary-foreground: var(--foreground);
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: light-dark(
+    rgb(26 28 31 / 49.4%),
+    rgb(255 255 255 / 49.8%)
+  );
+  --accent: light-dark(rgb(229 242 255), rgb(13 39 63));
+  --accent-foreground: var(--primary);
+  --destructive: light-dark(rgb(226 85 7), rgb(255 133 73));
+  --border: light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%));
+  --input: light-dark(
+    rgb(26 28 31 / 11.8%),
+    color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+  );
+  --ring: light-dark(rgb(51 156 255), rgb(131 195 255 / 76%));
+  --font-size-base: 14px;
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: 12.5px;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+  --color-background-primary: var(--background);
+  --color-text-primary: var(--foreground);
+  --color-border-secondary: var(--border);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--viz-font-weight-medium);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed=&quot;true&quot;],
+    [aria-selected=&quot;true&quot;],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;side-camera-contour-planner&quot;&gt;
+  &lt;style&gt;
+    #side-camera-contour-planner {
+      width: 100%;
+      color: var(--foreground);
+      font-family: inherit;
+    }
+    #side-camera-contour-planner .planner-controls {
+      align-items: end;
+      margin-bottom: 8px;
+    }
+    #side-camera-contour-planner .range-field {
+      flex: 1 1 220px;
+      min-width: 0;
+      margin: 0;
+    }
+    #side-camera-contour-planner .range-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    #side-camera-contour-planner output {
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    #side-camera-contour-planner .planner-note {
+      margin: 0 0 8px;
+    }
+    #side-camera-contour-planner .planner-table {
+      margin-bottom: 8px;
+    }
+    #side-camera-contour-planner .planner-table input[type=&quot;range&quot;] {
+      min-width: 150px;
+    }
+    #side-camera-contour-planner figure {
+      margin: 0;
+    }
+    #side-camera-contour-planner .planner-svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: hidden;
+    }
+    #side-camera-contour-planner .head-fill {
+      fill: var(--muted);
+      fill-opacity: 0.42;
+    }
+    #side-camera-contour-planner .outline {
+      fill: none;
+      stroke: var(--foreground);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #side-camera-contour-planner .structure {
+      fill: none;
+      stroke: var(--muted-foreground);
+      stroke-width: 1.2;
+    }
+    #side-camera-contour-planner .track {
+      fill: none;
+      stroke: var(--viz-series-3);
+      stroke-width: 1.5;
+      stroke-dasharray: 6 5;
+    }
+    #side-camera-contour-planner .fov-lf {
+      fill: var(--viz-series-1);
+      fill-opacity: 0.09;
+    }
+    #side-camera-contour-planner .fov-rf {
+      fill: var(--viz-series-2);
+      fill-opacity: 0.09;
+    }
+    #side-camera-contour-planner .fov-ls {
+      fill: var(--viz-series-3);
+      fill-opacity: 0.10;
+    }
+    #side-camera-contour-planner .fov-rs {
+      fill: var(--viz-series-4);
+      fill-opacity: 0.10;
+    }
+    #side-camera-contour-planner .pair-overlap {
+      fill: var(--viz-series-5);
+      fill-opacity: 0.34;
+    }
+    #side-camera-contour-planner .multi-overlap {
+      fill: var(--viz-series-6);
+      fill-opacity: 0.38;
+    }
+    #side-camera-contour-planner .ray-lf {
+      stroke: var(--viz-series-1);
+    }
+    #side-camera-contour-planner .ray-rf {
+      stroke: var(--viz-series-2);
+    }
+    #side-camera-contour-planner .ray-ls {
+      stroke: var(--viz-series-3);
+    }
+    #side-camera-contour-planner .ray-rs {
+      stroke: var(--viz-series-4);
+    }
+    #side-camera-contour-planner .fov-ray {
+      stroke-width: 1.25;
+    }
+    #side-camera-contour-planner .camera-axis {
+      stroke: var(--foreground);
+      stroke-width: 1.5;
+    }
+    #side-camera-contour-planner .camera-body {
+      fill: var(--card);
+      stroke: var(--foreground);
+      stroke-width: 1.5;
+    }
+    #side-camera-contour-planner .camera-lens {
+      fill: currentColor;
+    }
+    #side-camera-contour-planner .cam-lf {
+      color: var(--viz-series-1);
+    }
+    #side-camera-contour-planner .cam-rf {
+      color: var(--viz-series-2);
+    }
+    #side-camera-contour-planner .cam-ls {
+      color: var(--viz-series-3);
+    }
+    #side-camera-contour-planner .cam-rs {
+      color: var(--viz-series-4);
+    }
+    #side-camera-contour-planner .tangent {
+      stroke: var(--muted-foreground);
+      stroke-width: 1.2;
+      stroke-dasharray: 3 3;
+    }
+    #side-camera-contour-planner .measure {
+      fill: none;
+      stroke: var(--muted-foreground);
+      stroke-width: 1;
+    }
+    #side-camera-contour-planner .coordinate-axis {
+      fill: none;
+      stroke: var(--muted-foreground);
+      stroke-width: 1.2;
+    }
+    #side-camera-contour-planner .coordinate-tick {
+      stroke: var(--muted-foreground);
+      stroke-width: 1;
+    }
+    #side-camera-contour-planner .coordinate-origin {
+      fill: var(--foreground);
+    }
+    #side-camera-contour-planner .axis-intersection {
+      fill: var(--viz-series-6);
+      stroke: var(--background);
+      stroke-width: 2;
+    }
+    #side-camera-contour-planner .label {
+      fill: var(--foreground);
+      font-size: var(--font-size-base);
+      font-weight: 500;
+    }
+    #side-camera-contour-planner .secondary-label {
+      fill: var(--muted-foreground);
+      font-size: calc(var(--font-size-base) * 0.84);
+      font-weight: 400;
+    }
+    #side-camera-contour-planner .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      align-items: center;
+      margin: 6px 0 0;
+    }
+    #side-camera-contour-planner .legend-item {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+    #side-camera-contour-planner .swatch {
+      width: 18px;
+      height: 10px;
+      display: inline-block;
+    }
+    #side-camera-contour-planner .swatch-single {
+      background: var(--viz-series-3);
+      opacity: 0.35;
+    }
+    #side-camera-contour-planner .swatch-overlap {
+      background: var(--viz-series-5);
+      opacity: 0.65;
+    }
+    #side-camera-contour-planner .swatch-multi {
+      background: var(--viz-series-6);
+      opacity: 0.72;
+    }
+  &lt;/style&gt;
+
+  &lt;div class=&quot;viz-controls planner-controls&quot;&gt;
+    &lt;label class=&quot;form-label range-field&quot; for=&quot;scp-distance&quot;&gt;
+      &lt;span class=&quot;range-head&quot;&gt;&lt;span&gt;共同视野评估距离&lt;/span&gt;&lt;output id=&quot;scp-distance-value&quot; for=&quot;scp-distance&quot;&gt;0.2 m&lt;/output&gt;&lt;/span&gt;
+      &lt;input id=&quot;scp-distance&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0.2&quot; max=&quot;2&quot; step=&quot;0.1&quot; value=&quot;0.2&quot;&gt;
+    &lt;/label&gt;
+    &lt;button id=&quot;scp-export-png&quot; class=&quot;btn&quot; type=&quot;button&quot;&gt;导出透明 PNG&lt;/button&gt;
+    &lt;span id=&quot;scp-export-status&quot; class=&quot;text-small text-muted&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;p class=&quot;text-small text-muted planner-note&quot;&gt;坐标原点 O 为头环中心，+X 向右、+Y 向前；轨迹位置 0% 靠近前视相机，100% 靠近后侧开口；偏转角 0° 表示光轴朝局部外法线。&lt;/p&gt;
+
+  &lt;div class=&quot;table-responsive&quot;&gt;
+    &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;侧边相机位置与角度控制&quot;&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th scope=&quot;col&quot;&gt;相机&lt;/th&gt;
+          &lt;th scope=&quot;col&quot;&gt;外轮廓位置&lt;/th&gt;
+          &lt;th scope=&quot;col&quot;&gt;相对外法线偏转&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;实时光心 O 坐标&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;实际偏航&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;相邻基线&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;共同视野&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;tr&gt;
+          &lt;th scope=&quot;row&quot;&gt;左侧 LS&lt;/th&gt;
+          &lt;td&gt;
+            &lt;output id=&quot;scp-ls-position-value&quot; for=&quot;scp-ls-position&quot;&gt;17.5%&lt;/output&gt;
+            &lt;input id=&quot;scp-ls-position&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot;&gt;
+          &lt;/td&gt;
+          &lt;td&gt;
+            &lt;output id=&quot;scp-ls-offset-value&quot; for=&quot;scp-ls-offset&quot;&gt;0.0°&lt;/output&gt;
+            &lt;input id=&quot;scp-ls-offset&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot;&gt;
+          &lt;/td&gt;
+          &lt;td id=&quot;scp-ls-coordinate&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+          &lt;td id=&quot;scp-ls-yaw&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+          &lt;td id=&quot;scp-ls-baseline&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+          &lt;td id=&quot;scp-ls-overlap&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;th scope=&quot;row&quot;&gt;右侧 RS&lt;/th&gt;
+          &lt;td&gt;
+            &lt;output id=&quot;scp-rs-position-value&quot; for=&quot;scp-rs-position&quot;&gt;17.5%&lt;/output&gt;
+            &lt;input id=&quot;scp-rs-position&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot;&gt;
+          &lt;/td&gt;
+          &lt;td&gt;
+            &lt;output id=&quot;scp-rs-offset-value&quot; for=&quot;scp-rs-offset&quot;&gt;0.0°&lt;/output&gt;
+            &lt;input id=&quot;scp-rs-offset&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot;&gt;
+          &lt;/td&gt;
+          &lt;td id=&quot;scp-rs-coordinate&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+          &lt;td id=&quot;scp-rs-yaw&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+          &lt;td id=&quot;scp-rs-baseline&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+          &lt;td id=&quot;scp-rs-overlap&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;table-responsive&quot;&gt;
+    &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;四个相机在头环中心坐标系中的实时坐标&quot;&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th scope=&quot;col&quot;&gt;相机&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;X (mm)&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;Y (mm)&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;偏航 (°)&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;HFOV (°)&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;左前 LF&lt;/th&gt;&lt;td id=&quot;scp-record-lf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-lf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-lf-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;右前 RF&lt;/th&gt;&lt;td id=&quot;scp-record-rf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rf-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;左侧 LS&lt;/th&gt;&lt;td id=&quot;scp-record-ls-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-ls-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-ls-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;右侧 RS&lt;/th&gt;&lt;td id=&quot;scp-record-rs-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rs-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rs-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;table-responsive&quot;&gt;
+    &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;相邻相机中心光轴的实时交点坐标&quot;&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th scope=&quot;col&quot;&gt;相邻光轴&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;交点 X (mm)&lt;/th&gt;
+          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;交点 Y (mm)&lt;/th&gt;
+          &lt;th scope=&quot;col&quot;&gt;状态&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LS — LF&lt;/th&gt;&lt;td id=&quot;scp-cross-ls-lf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-ls-lf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-ls-lf-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LF — RF&lt;/th&gt;&lt;td id=&quot;scp-cross-lf-rf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-lf-rf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-lf-rf-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;RF — RS&lt;/th&gt;&lt;td id=&quot;scp-cross-rf-rs-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-rf-rs-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-rf-rs-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+
+  &lt;figure aria-label=&quot;四个80度RGB相机沿头环外轮廓布置后的俯视视场&quot;&gt;
+    &lt;svg id=&quot;scp-planner-svg&quot; class=&quot;planner-svg&quot; viewBox=&quot;0 0 760 840&quot; role=&quot;img&quot; aria-labelledby=&quot;scp-title scp-desc&quot;&gt;
+      &lt;title id=&quot;scp-title&quot;&gt;侧边相机外轮廓位置与视场规划&lt;/title&gt;
+      &lt;desc id=&quot;scp-desc&quot;&gt;坐标原点位于头环中心，X轴向右，Y轴向前。左右前视相机间距60毫米且朝向正前方。左右侧相机沿头环左右外轮廓移动，光轴默认朝局部切线的外法向，所有相机水平视场角为80度。任意两个视场的交叉区域用独立颜色显示。&lt;/desc&gt;
+      &lt;defs&gt;
+        &lt;marker id=&quot;scp-axis-arrow&quot; markerWidth=&quot;7&quot; markerHeight=&quot;7&quot; refX=&quot;5.5&quot; refY=&quot;3.5&quot; orient=&quot;auto&quot;&gt;
+          &lt;path d=&quot;M0,0 L7,3.5 L0,7 Z&quot; fill=&quot;var(--muted-foreground)&quot;&gt;&lt;/path&gt;
+        &lt;/marker&gt;
+      &lt;/defs&gt;
+
+      &lt;polygon id=&quot;scp-fov-lf&quot; class=&quot;fov-lf&quot;&gt;&lt;/polygon&gt;
+      &lt;polygon id=&quot;scp-fov-rf&quot; class=&quot;fov-rf&quot;&gt;&lt;/polygon&gt;
+      &lt;polygon id=&quot;scp-fov-ls&quot; class=&quot;fov-ls&quot;&gt;&lt;/polygon&gt;
+      &lt;polygon id=&quot;scp-fov-rs&quot; class=&quot;fov-rs&quot;&gt;&lt;/polygon&gt;
+      &lt;path id=&quot;scp-pair-overlap&quot; class=&quot;pair-overlap&quot;&gt;&lt;/path&gt;
+      &lt;path id=&quot;scp-multi-overlap&quot; class=&quot;multi-overlap&quot;&gt;&lt;/path&gt;
+
+      &lt;line id=&quot;scp-lf-ray-a&quot; class=&quot;fov-ray ray-lf&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-lf-ray-b&quot; class=&quot;fov-ray ray-lf&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-rf-ray-a&quot; class=&quot;fov-ray ray-rf&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-rf-ray-b&quot; class=&quot;fov-ray ray-rf&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-ls-ray-a&quot; class=&quot;fov-ray ray-ls&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-ls-ray-b&quot; class=&quot;fov-ray ray-ls&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-rs-ray-a&quot; class=&quot;fov-ray ray-rs&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-rs-ray-b&quot; class=&quot;fov-ray ray-rs&quot;&gt;&lt;/line&gt;
+
+      &lt;path id=&quot;scp-head-fill&quot; class=&quot;head-fill&quot;&gt;&lt;/path&gt;
+      &lt;g id=&quot;scp-coordinate-system&quot; aria-label=&quot;以头环中心为原点的二维坐标系&quot;&gt;
+        &lt;line id=&quot;scp-x-axis&quot; class=&quot;coordinate-axis&quot; marker-end=&quot;url(#scp-axis-arrow)&quot;&gt;&lt;/line&gt;
+        &lt;line id=&quot;scp-y-axis&quot; class=&quot;coordinate-axis&quot; marker-end=&quot;url(#scp-axis-arrow)&quot;&gt;&lt;/line&gt;
+        &lt;g id=&quot;scp-axis-ticks&quot;&gt;&lt;/g&gt;
+        &lt;circle id=&quot;scp-origin&quot; r=&quot;3&quot; class=&quot;coordinate-origin&quot;&gt;&lt;/circle&gt;
+        &lt;text id=&quot;scp-origin-label&quot; class=&quot;secondary-label&quot;&gt;O (0, 0)&lt;/text&gt;
+        &lt;text id=&quot;scp-x-axis-label&quot; class=&quot;secondary-label&quot;&gt;+X 右&lt;/text&gt;
+        &lt;text id=&quot;scp-y-axis-label&quot; class=&quot;secondary-label&quot;&gt;+Y 前&lt;/text&gt;
+      &lt;/g&gt;
+      &lt;path id=&quot;scp-left-outline&quot; class=&quot;outline&quot;&gt;&lt;/path&gt;
+      &lt;path id=&quot;scp-right-outline&quot; class=&quot;outline&quot;&gt;&lt;/path&gt;
+      &lt;path id=&quot;scp-left-track&quot; class=&quot;track&quot;&gt;&lt;/path&gt;
+      &lt;path id=&quot;scp-right-track&quot; class=&quot;track&quot;&gt;&lt;/path&gt;
+      &lt;line id=&quot;scp-upper-structure&quot; class=&quot;structure&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-middle-structure&quot; class=&quot;structure&quot;&gt;&lt;/line&gt;
+
+      &lt;line id=&quot;scp-ls-tangent&quot; class=&quot;tangent&quot;&gt;&lt;/line&gt;
+      &lt;line id=&quot;scp-rs-tangent&quot; class=&quot;tangent&quot;&gt;&lt;/line&gt;
+
+      &lt;g id=&quot;scp-cross-ls-lf-marker&quot;&gt;
+        &lt;circle r=&quot;6&quot; class=&quot;axis-intersection&quot;&gt;&lt;/circle&gt;
+        &lt;text class=&quot;secondary-label&quot; x=&quot;9&quot; y=&quot;-8&quot;&gt;LS–LF&lt;/text&gt;
+      &lt;/g&gt;
+      &lt;g id=&quot;scp-cross-lf-rf-marker&quot;&gt;
+        &lt;circle r=&quot;6&quot; class=&quot;axis-intersection&quot;&gt;&lt;/circle&gt;
+        &lt;text class=&quot;secondary-label&quot; x=&quot;9&quot; y=&quot;-8&quot;&gt;LF–RF&lt;/text&gt;
+      &lt;/g&gt;
+      &lt;g id=&quot;scp-cross-rf-rs-marker&quot;&gt;
+        &lt;circle r=&quot;6&quot; class=&quot;axis-intersection&quot;&gt;&lt;/circle&gt;
+        &lt;text class=&quot;secondary-label&quot; x=&quot;9&quot; y=&quot;-8&quot;&gt;RF–RS&lt;/text&gt;
+      &lt;/g&gt;
+
+      &lt;path id=&quot;scp-dimension&quot; class=&quot;measure&quot;&gt;&lt;/path&gt;
+      &lt;text id=&quot;scp-dimension-label&quot; class=&quot;secondary-label&quot; text-anchor=&quot;middle&quot;&gt;60 mm&lt;/text&gt;
+      &lt;text id=&quot;scp-scale-label&quot; class=&quot;secondary-label&quot; text-anchor=&quot;middle&quot;&gt;轮廓按图中 60 mm 前视基线等比例标定&lt;/text&gt;
+
+      &lt;g id=&quot;scp-lf-camera&quot; class=&quot;cam-lf&quot;&gt;
+        &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;-42&quot; class=&quot;camera-axis&quot;&gt;&lt;/line&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;0&quot; r=&quot;9&quot; class=&quot;camera-body&quot;&gt;&lt;/circle&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;-6&quot; r=&quot;3&quot; class=&quot;camera-lens&quot;&gt;&lt;/circle&gt;
+      &lt;/g&gt;
+      &lt;g id=&quot;scp-rf-camera&quot; class=&quot;cam-rf&quot;&gt;
+        &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;-42&quot; class=&quot;camera-axis&quot;&gt;&lt;/line&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;0&quot; r=&quot;9&quot; class=&quot;camera-body&quot;&gt;&lt;/circle&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;-6&quot; r=&quot;3&quot; class=&quot;camera-lens&quot;&gt;&lt;/circle&gt;
+      &lt;/g&gt;
+      &lt;g id=&quot;scp-ls-camera&quot; class=&quot;cam-ls&quot;&gt;
+        &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;-42&quot; class=&quot;camera-axis&quot;&gt;&lt;/line&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;0&quot; r=&quot;9&quot; class=&quot;camera-body&quot;&gt;&lt;/circle&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;-6&quot; r=&quot;3&quot; class=&quot;camera-lens&quot;&gt;&lt;/circle&gt;
+      &lt;/g&gt;
+      &lt;g id=&quot;scp-rs-camera&quot; class=&quot;cam-rs&quot;&gt;
+        &lt;line x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;0&quot; y2=&quot;-42&quot; class=&quot;camera-axis&quot;&gt;&lt;/line&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;0&quot; r=&quot;9&quot; class=&quot;camera-body&quot;&gt;&lt;/circle&gt;
+        &lt;circle cx=&quot;0&quot; cy=&quot;-6&quot; r=&quot;3&quot; class=&quot;camera-lens&quot;&gt;&lt;/circle&gt;
+      &lt;/g&gt;
+
+      &lt;text id=&quot;scp-lf-label&quot; class=&quot;label&quot; text-anchor=&quot;end&quot;&gt;LF&lt;/text&gt;
+      &lt;text id=&quot;scp-rf-label&quot; class=&quot;label&quot;&gt;RF&lt;/text&gt;
+      &lt;text id=&quot;scp-ls-label&quot; class=&quot;label&quot; text-anchor=&quot;end&quot;&gt;LS&lt;/text&gt;
+      &lt;text id=&quot;scp-rs-label&quot; class=&quot;label&quot;&gt;RS&lt;/text&gt;
+    &lt;/svg&gt;
+  &lt;/figure&gt;
+
+  &lt;div class=&quot;legend text-small text-muted&quot; aria-label=&quot;视场颜色说明&quot;&gt;
+    &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-single&quot;&gt;&lt;/span&gt;单镜头视场&lt;/span&gt;
+    &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-overlap&quot;&gt;&lt;/span&gt;两个镜头交叉视场&lt;/span&gt;
+    &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-multi&quot;&gt;&lt;/span&gt;三个及以上镜头交叉视场&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const root = document.getElementById(&#x27;side-camera-contour-planner&#x27;);
+      if (!root) return;
+
+      const byId = (id) =&gt; root.querySelector(&#x27;#&#x27; + id);
+      const scale = 1.52;
+      const origin = { x: 380, y: 260 };
+      const far = 2200;
+      const halfFov = 40;
+      const headCenter = { x: 0, y: -190 };
+
+      const leftTrack = [
+        { x: -30, y: 0 },
+        { x: -50, y: -3 },
+        { x: -70, y: -10 },
+        { x: -88, y: -18 },
+        { x: -103, y: -27 },
+        { x: -112, y: -38 },
+        { x: -116, y: -55 },
+        { x: -118, y: -80 },
+        { x: -120, y: -110 },
+        { x: -124, y: -150 },
+        { x: -130, y: -195 },
+        { x: -132, y: -225 },
+        { x: -128, y: -252 },
+        { x: -115, y: -275 },
+        { x: -98, y: -296 },
+        { x: -78, y: -316 },
+        { x: -56, y: -333 },
+        { x: -32, y: -345 },
+        { x: -10, y: -352 }
+      ];
+      const rightTrack = leftTrack.map((point) =&gt; ({ x: -point.x, y: point.y }));
+      const leftOutline = [{ x: 0, y: 2 }, ...leftTrack];
+      const rightOutline = [{ x: 0, y: 2 }, ...rightTrack];
+      const frontCameras = {
+        lf: { id: &#x27;lf&#x27;, x: -30, y: 0, yaw: 0, fov: 80 },
+        rf: { id: &#x27;rf&#x27;, x: 30, y: 0, yaw: 0, fov: 80 }
+      };
+      const pairs = [
+        [&#x27;lf&#x27;, &#x27;rf&#x27;],
+        [&#x27;lf&#x27;, &#x27;ls&#x27;],
+        [&#x27;lf&#x27;, &#x27;rs&#x27;],
+        [&#x27;rf&#x27;, &#x27;ls&#x27;],
+        [&#x27;rf&#x27;, &#x27;rs&#x27;],
+        [&#x27;ls&#x27;, &#x27;rs&#x27;]
+      ];
+      const triples = [
+        [&#x27;lf&#x27;, &#x27;rf&#x27;, &#x27;ls&#x27;],
+        [&#x27;lf&#x27;, &#x27;rf&#x27;, &#x27;rs&#x27;],
+        [&#x27;lf&#x27;, &#x27;ls&#x27;, &#x27;rs&#x27;],
+        [&#x27;rf&#x27;, &#x27;ls&#x27;, &#x27;rs&#x27;]
+      ];
+      const adjacentAxisPairs = [
+        [&#x27;ls&#x27;, &#x27;lf&#x27;],
+        [&#x27;lf&#x27;, &#x27;rf&#x27;],
+        [&#x27;rf&#x27;, &#x27;rs&#x27;]
+      ];
+
+      const rad = (degrees) =&gt; degrees * Math.PI / 180;
+      const deg = (radians) =&gt; radians * 180 / Math.PI;
+      const wrap = (degrees) =&gt; ((degrees + 180) % 360 + 360) % 360 - 180;
+      const format = (number, digits = 1) =&gt; Number(number).toFixed(digits);
+      const map = (point) =&gt; ({
+        x: origin.x + point.x * scale,
+        y: origin.y - point.y * scale
+      });
+      const centeredPoint = (point) =&gt; ({
+        x: point.x - headCenter.x,
+        y: point.y - headCenter.y
+      });
+
+      function pathData(points, close = false) {
+        const mapped = points.map(map);
+        return mapped.map((point, index) =&gt; (index ? &#x27;L&#x27; : &#x27;M&#x27;) + format(point.x) + &#x27; &#x27; + format(point.y)).join(&#x27; &#x27;) + (close ? &#x27; Z&#x27; : &#x27;&#x27;);
+      }
+
+      function polylineMetrics(points) {
+        const lengths = [];
+        let total = 0;
+        for (let index = 1; index &lt; points.length; index += 1) {
+          const length = Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+          lengths.push(length);
+          total += length;
+        }
+        return { lengths, total };
+      }
+
+      function pointAtDistance(points, metrics, distance) {
+        let remaining = Math.max(0, Math.min(metrics.total, distance));
+        for (let index = 0; index &lt; metrics.lengths.length; index += 1) {
+          const segmentLength = metrics.lengths[index];
+          if (remaining &lt;= segmentLength || index === metrics.lengths.length - 1) {
+            const ratio = segmentLength ? remaining / segmentLength : 0;
+            const start = points[index];
+            const end = points[index + 1];
+            return {
+              x: start.x + (end.x - start.x) * ratio,
+              y: start.y + (end.y - start.y) * ratio
+            };
+          }
+          remaining -= segmentLength;
+        }
+        return points[points.length - 1];
+      }
+
+      function sampleTrack(points, percent) {
+        const metrics = polylineMetrics(points);
+        const distance = metrics.total * Math.max(0, Math.min(100, percent)) / 100;
+        const point = pointAtDistance(points, metrics, distance);
+        const before = pointAtDistance(points, metrics, distance - 10);
+        const after = pointAtDistance(points, metrics, distance + 10);
+        const tangentLength = Math.hypot(after.x - before.x, after.y - before.y) || 1;
+        const tangent = {
+          x: (after.x - before.x) / tangentLength,
+          y: (after.y - before.y) / tangentLength
+        };
+        const candidates = [
+          { x: -tangent.y, y: tangent.x },
+          { x: tangent.y, y: -tangent.x }
+        ];
+        const radial = { x: point.x - headCenter.x, y: point.y - headCenter.y };
+        const normal = candidates.reduce((best, candidate) =&gt; {
+          const score = candidate.x * radial.x + candidate.y * radial.y;
+          return !best || score &gt; best.score ? { ...candidate, score } : best;
+        }, null);
+        return { point, tangent, normal: { x: normal.x, y: normal.y } };
+      }
+
+      function sideCamera(id, track) {
+        const positionInput = byId(&#x27;scp-&#x27; + id + &#x27;-position&#x27;);
+        const offsetInput = byId(&#x27;scp-&#x27; + id + &#x27;-offset&#x27;);
+        const position = Number(positionInput.value);
+        const offset = Number(offsetInput.value);
+        const sampled = sampleTrack(track, position);
+        const normalYaw = deg(Math.atan2(sampled.normal.x, sampled.normal.y));
+        return {
+          id,
+          x: sampled.point.x,
+          y: sampled.point.y,
+          yaw: wrap(normalYaw + offset),
+          normalYaw,
+          offset,
+          position,
+          tangent: sampled.tangent,
+          fov: 80
+        };
+      }
+
+      function fovPolygon(camera) {
+        const leftAngle = camera.yaw - camera.fov / 2;
+        const rightAngle = camera.yaw + camera.fov / 2;
+        return [
+          { x: camera.x, y: camera.y },
+          { x: camera.x + far * Math.sin(rad(rightAngle)), y: camera.y + far * Math.cos(rad(rightAngle)) },
+          { x: camera.x + far * Math.sin(rad(leftAngle)), y: camera.y + far * Math.cos(rad(leftAngle)) }
+        ];
+      }
+
+      function polygonArea(points) {
+        return points.reduce((sum, point, index) =&gt; {
+          const next = points[(index + 1) % points.length];
+          return sum + point.x * next.y - next.x * point.y;
+        }, 0) / 2;
+      }
+
+      function cross(a, b) {
+        return a.x * b.y - a.y * b.x;
+      }
+
+      function lineIntersection(start, end, clipStart, clipEnd) {
+        const subjectDirection = { x: end.x - start.x, y: end.y - start.y };
+        const clipDirection = { x: clipEnd.x - clipStart.x, y: clipEnd.y - clipStart.y };
+        const denominator = cross(subjectDirection, clipDirection);
+        if (Math.abs(denominator) &lt; 1e-9) return end;
+        const offset = { x: clipStart.x - start.x, y: clipStart.y - start.y };
+        const t = cross(offset, clipDirection) / denominator;
+        return {
+          x: start.x + subjectDirection.x * t,
+          y: start.y + subjectDirection.y * t
+        };
+      }
+
+      function clipPolygon(subject, clip) {
+        if (!subject.length || !clip.length) return [];
+        let output = subject.slice();
+        const orientation = polygonArea(clip) &gt;= 0 ? 1 : -1;
+        for (let edgeIndex = 0; edgeIndex &lt; clip.length; edgeIndex += 1) {
+          const clipStart = clip[edgeIndex];
+          const clipEnd = clip[(edgeIndex + 1) % clip.length];
+          const input = output.slice();
+          output = [];
+          if (!input.length) break;
+          const isInside = (point) =&gt; orientation * cross(
+            { x: clipEnd.x - clipStart.x, y: clipEnd.y - clipStart.y },
+            { x: point.x - clipStart.x, y: point.y - clipStart.y }
+          ) &gt;= -1e-8;
+          let start = input[input.length - 1];
+          for (const end of input) {
+            const startInside = isInside(start);
+            const endInside = isInside(end);
+            if (endInside) {
+              if (!startInside) output.push(lineIntersection(start, end, clipStart, clipEnd));
+              output.push(end);
+            } else if (startInside) {
+              output.push(lineIntersection(start, end, clipStart, clipEnd));
+            }
+            start = end;
+          }
+        }
+        return output;
+      }
+
+      function pointsAttribute(points) {
+        return points.map(map).map((point) =&gt; format(point.x) + &#x27;,&#x27; + format(point.y)).join(&#x27; &#x27;);
+      }
+
+      function compoundPath(polygons) {
+        return polygons.filter((polygon) =&gt; polygon.length &gt;= 3).map((polygon) =&gt; pathData(polygon, true)).join(&#x27; &#x27;);
+      }
+
+      function setRay(id, camera, angle) {
+        const start = map(camera);
+        const end = map({
+          x: camera.x + far * Math.sin(rad(angle)),
+          y: camera.y + far * Math.cos(rad(angle))
+        });
+        const line = byId(id);
+        line.setAttribute(&#x27;x1&#x27;, format(start.x));
+        line.setAttribute(&#x27;y1&#x27;, format(start.y));
+        line.setAttribute(&#x27;x2&#x27;, format(end.x));
+        line.setAttribute(&#x27;y2&#x27;, format(end.y));
+      }
+
+      function setCamera(camera) {
+        const point = map(camera);
+        byId(&#x27;scp-&#x27; + camera.id + &#x27;-camera&#x27;).setAttribute(
+          &#x27;transform&#x27;,
+          &#x27;translate(&#x27; + format(point.x) + &#x27; &#x27; + format(point.y) + &#x27;) rotate(&#x27; + format(camera.yaw) + &#x27;)&#x27;
+        );
+        const label = byId(&#x27;scp-&#x27; + camera.id + &#x27;-label&#x27;);
+        const left = camera.x &lt; 0;
+        label.setAttribute(&#x27;x&#x27;, format(point.x + (left ? -13 : 13)));
+        label.setAttribute(&#x27;y&#x27;, format(point.y + 20));
+        label.setAttribute(&#x27;text-anchor&#x27;, left ? &#x27;end&#x27; : &#x27;start&#x27;);
+      }
+
+      function setTangent(id, camera) {
+        const halfLength = 15;
+        const start = map({
+          x: camera.x - camera.tangent.x * halfLength,
+          y: camera.y - camera.tangent.y * halfLength
+        });
+        const end = map({
+          x: camera.x + camera.tangent.x * halfLength,
+          y: camera.y + camera.tangent.y * halfLength
+        });
+        const line = byId(&#x27;scp-&#x27; + id + &#x27;-tangent&#x27;);
+        line.setAttribute(&#x27;x1&#x27;, format(start.x));
+        line.setAttribute(&#x27;y1&#x27;, format(start.y));
+        line.setAttribute(&#x27;x2&#x27;, format(end.x));
+        line.setAttribute(&#x27;y2&#x27;, format(end.y));
+      }
+
+      function cameraVisible(point, camera) {
+        const angle = deg(Math.atan2(point.x - camera.x, point.y - camera.y));
+        return Math.abs(wrap(angle - camera.yaw)) &lt;= camera.fov / 2 + 1e-8;
+      }
+
+      function angularOverlap(first, second, rangeMm) {
+        const step = 0.25;
+        let count = 0;
+        for (let angle = -180; angle &lt; 180; angle += step) {
+          const point = {
+            x: rangeMm * Math.sin(rad(angle)),
+            y: rangeMm * Math.cos(rad(angle))
+          };
+          if (cameraVisible(point, first) &amp;&amp; cameraVisible(point, second)) count += 1;
+        }
+        return count * step;
+      }
+
+      function forwardRayIntersection(first, second) {
+        const firstDirection = {
+          x: Math.sin(rad(first.yaw)),
+          y: Math.cos(rad(first.yaw))
+        };
+        const secondDirection = {
+          x: Math.sin(rad(second.yaw)),
+          y: Math.cos(rad(second.yaw))
+        };
+        const denominator = cross(firstDirection, secondDirection);
+        if (Math.abs(denominator) &lt; 1e-8) {
+          return { point: null, status: &#x27;无交点：光轴平行&#x27; };
+        }
+        const offset = {
+          x: second.x - first.x,
+          y: second.y - first.y
+        };
+        const firstDistance = cross(offset, secondDirection) / denominator;
+        const secondDistance = cross(offset, firstDirection) / denominator;
+        if (firstDistance &lt; 0 || secondDistance &lt; 0) {
+          return { point: null, status: &#x27;无交点：交点位于光轴反向&#x27; };
+        }
+        return {
+          point: {
+            x: first.x + firstDirection.x * firstDistance,
+            y: first.y + firstDirection.y * firstDistance
+          },
+          status: &#x27;正向光轴相交&#x27;
+        };
+      }
+
+      function updateAxisIntersections(cameras) {
+        adjacentAxisPairs.forEach(([firstId, secondId]) =&gt; {
+          const key = firstId + &#x27;-&#x27; + secondId;
+          const result = forwardRayIntersection(cameras[firstId], cameras[secondId]);
+          const xCell = byId(&#x27;scp-cross-&#x27; + key + &#x27;-x&#x27;);
+          const yCell = byId(&#x27;scp-cross-&#x27; + key + &#x27;-y&#x27;);
+          const statusCell = byId(&#x27;scp-cross-&#x27; + key + &#x27;-status&#x27;);
+          const marker = byId(&#x27;scp-cross-&#x27; + key + &#x27;-marker&#x27;);
+          statusCell.textContent = result.status;
+          if (!result.point) {
+            xCell.textContent = &#x27;—&#x27;;
+            yCell.textContent = &#x27;—&#x27;;
+            marker.setAttribute(&#x27;display&#x27;, &#x27;none&#x27;);
+            return;
+          }
+          const recorded = centeredPoint(result.point);
+          const mapped = map(result.point);
+          xCell.textContent = format(recorded.x);
+          yCell.textContent = format(recorded.y);
+          marker.removeAttribute(&#x27;display&#x27;);
+          marker.setAttribute(&#x27;transform&#x27;, &#x27;translate(&#x27; + format(mapped.x) + &#x27; &#x27; + format(mapped.y) + &#x27;)&#x27;);
+        });
+      }
+
+      function setStaticGeometry() {
+        byId(&#x27;scp-left-outline&#x27;).setAttribute(&#x27;d&#x27;, pathData(leftOutline));
+        byId(&#x27;scp-right-outline&#x27;).setAttribute(&#x27;d&#x27;, pathData(rightOutline));
+        byId(&#x27;scp-left-track&#x27;).setAttribute(&#x27;d&#x27;, pathData(leftTrack));
+        byId(&#x27;scp-right-track&#x27;).setAttribute(&#x27;d&#x27;, pathData(rightTrack));
+        const fillPoints = [
+          ...leftOutline,
+          ...rightOutline.slice().reverse()
+        ];
+        byId(&#x27;scp-head-fill&#x27;).setAttribute(&#x27;d&#x27;, pathData(fillPoints, true));
+
+        const xAxisStart = map({ x: -145, y: headCenter.y });
+        const xAxisEnd = map({ x: 150, y: headCenter.y });
+        const yAxisStart = map({ x: headCenter.x, y: -345 });
+        const yAxisEnd = map({ x: headCenter.x, y: 130 });
+        const xAxis = byId(&#x27;scp-x-axis&#x27;);
+        xAxis.setAttribute(&#x27;x1&#x27;, format(xAxisStart.x));
+        xAxis.setAttribute(&#x27;y1&#x27;, format(xAxisStart.y));
+        xAxis.setAttribute(&#x27;x2&#x27;, format(xAxisEnd.x));
+        xAxis.setAttribute(&#x27;y2&#x27;, format(xAxisEnd.y));
+        const yAxis = byId(&#x27;scp-y-axis&#x27;);
+        yAxis.setAttribute(&#x27;x1&#x27;, format(yAxisStart.x));
+        yAxis.setAttribute(&#x27;y1&#x27;, format(yAxisStart.y));
+        yAxis.setAttribute(&#x27;x2&#x27;, format(yAxisEnd.x));
+        yAxis.setAttribute(&#x27;y2&#x27;, format(yAxisEnd.y));
+
+        const originPoint = map(headCenter);
+        const originMarker = byId(&#x27;scp-origin&#x27;);
+        originMarker.setAttribute(&#x27;cx&#x27;, format(originPoint.x));
+        originMarker.setAttribute(&#x27;cy&#x27;, format(originPoint.y));
+        const originLabel = byId(&#x27;scp-origin-label&#x27;);
+        originLabel.setAttribute(&#x27;x&#x27;, format(originPoint.x + 7));
+        originLabel.setAttribute(&#x27;y&#x27;, format(originPoint.y - 7));
+        const xAxisLabel = byId(&#x27;scp-x-axis-label&#x27;);
+        xAxisLabel.setAttribute(&#x27;x&#x27;, format(xAxisEnd.x - 2));
+        xAxisLabel.setAttribute(&#x27;y&#x27;, format(xAxisEnd.y - 8));
+        xAxisLabel.setAttribute(&#x27;text-anchor&#x27;, &#x27;end&#x27;);
+        const yAxisLabel = byId(&#x27;scp-y-axis-label&#x27;);
+        yAxisLabel.setAttribute(&#x27;x&#x27;, format(yAxisEnd.x + 7));
+        yAxisLabel.setAttribute(&#x27;y&#x27;, format(yAxisEnd.y + 3));
+
+        const tickGroup = byId(&#x27;scp-axis-ticks&#x27;);
+        const svgNamespace = &#x27;http://www.w3.org/2000/svg&#x27;;
+        [-100, -50, 50, 100].forEach((value) =&gt; {
+          const point = map({ x: headCenter.x + value, y: headCenter.y });
+          const tick = document.createElementNS(svgNamespace, &#x27;line&#x27;);
+          tick.setAttribute(&#x27;x1&#x27;, format(point.x));
+          tick.setAttribute(&#x27;y1&#x27;, format(point.y - 4));
+          tick.setAttribute(&#x27;x2&#x27;, format(point.x));
+          tick.setAttribute(&#x27;y2&#x27;, format(point.y + 4));
+          tick.setAttribute(&#x27;class&#x27;, &#x27;coordinate-tick&#x27;);
+          tickGroup.appendChild(tick);
+          const label = document.createElementNS(svgNamespace, &#x27;text&#x27;);
+          label.setAttribute(&#x27;x&#x27;, format(point.x));
+          label.setAttribute(&#x27;y&#x27;, format(point.y + 16));
+          label.setAttribute(&#x27;text-anchor&#x27;, &#x27;middle&#x27;);
+          label.setAttribute(&#x27;class&#x27;, &#x27;secondary-label&#x27;);
+          label.textContent = value;
+          tickGroup.appendChild(label);
+        });
+        [-100, 100, 200, 300].forEach((value) =&gt; {
+          const point = map({ x: headCenter.x, y: headCenter.y + value });
+          const tick = document.createElementNS(svgNamespace, &#x27;line&#x27;);
+          tick.setAttribute(&#x27;x1&#x27;, format(point.x - 4));
+          tick.setAttribute(&#x27;y1&#x27;, format(point.y));
+          tick.setAttribute(&#x27;x2&#x27;, format(point.x + 4));
+          tick.setAttribute(&#x27;y2&#x27;, format(point.y));
+          tick.setAttribute(&#x27;class&#x27;, &#x27;coordinate-tick&#x27;);
+          tickGroup.appendChild(tick);
+          const label = document.createElementNS(svgNamespace, &#x27;text&#x27;);
+          label.setAttribute(&#x27;x&#x27;, format(point.x + 7));
+          label.setAttribute(&#x27;y&#x27;, format(point.y - 4));
+          label.setAttribute(&#x27;class&#x27;, &#x27;secondary-label&#x27;);
+          label.textContent = value;
+          tickGroup.appendChild(label);
+        });
+
+        const upperLeft = map({ x: -98, y: -20 });
+        const upperRight = map({ x: 98, y: -20 });
+        const middleLeft = map({ x: -118, y: -70 });
+        const middleRight = map({ x: 118, y: -70 });
+        const upper = byId(&#x27;scp-upper-structure&#x27;);
+        upper.setAttribute(&#x27;x1&#x27;, format(upperLeft.x));
+        upper.setAttribute(&#x27;y1&#x27;, format(upperLeft.y));
+        upper.setAttribute(&#x27;x2&#x27;, format(upperRight.x));
+        upper.setAttribute(&#x27;y2&#x27;, format(upperRight.y));
+        const middle = byId(&#x27;scp-middle-structure&#x27;);
+        middle.setAttribute(&#x27;x1&#x27;, format(middleLeft.x));
+        middle.setAttribute(&#x27;y1&#x27;, format(middleLeft.y));
+        middle.setAttribute(&#x27;x2&#x27;, format(middleRight.x));
+        middle.setAttribute(&#x27;y2&#x27;, format(middleRight.y));
+
+        const left = map({ x: -30, y: 24 });
+        const right = map({ x: 30, y: 24 });
+        const leftBase = map({ x: -30, y: 0 });
+        const rightBase = map({ x: 30, y: 0 });
+        byId(&#x27;scp-dimension&#x27;).setAttribute(
+          &#x27;d&#x27;,
+          &#x27;M&#x27; + format(leftBase.x) + &#x27; &#x27; + format(leftBase.y) +
+          &#x27; L&#x27; + format(left.x) + &#x27; &#x27; + format(left.y) +
+          &#x27; L&#x27; + format(right.x) + &#x27; &#x27; + format(right.y) +
+          &#x27; L&#x27; + format(rightBase.x) + &#x27; &#x27; + format(rightBase.y)
+        );
+        const dimensionLabel = byId(&#x27;scp-dimension-label&#x27;);
+        dimensionLabel.setAttribute(&#x27;x&#x27;, format(origin.x));
+        dimensionLabel.setAttribute(&#x27;y&#x27;, format(left.y - 8));
+        const scaleLabel = byId(&#x27;scp-scale-label&#x27;);
+        scaleLabel.setAttribute(&#x27;x&#x27;, format(origin.x));
+        scaleLabel.setAttribute(&#x27;y&#x27;, &#x27;824&#x27;);
+      }
+
+      function update() {
+        const ls = sideCamera(&#x27;ls&#x27;, leftTrack);
+        const rs = sideCamera(&#x27;rs&#x27;, rightTrack);
+        const cameras = { ...frontCameras, ls, rs };
+        const polygons = Object.fromEntries(
+          Object.entries(cameras).map(([id, camera]) =&gt; [id, fovPolygon(camera)])
+        );
+
+        Object.values(cameras).forEach((camera) =&gt; {
+          byId(&#x27;scp-fov-&#x27; + camera.id).setAttribute(&#x27;points&#x27;, pointsAttribute(polygons[camera.id]));
+          setRay(&#x27;scp-&#x27; + camera.id + &#x27;-ray-a&#x27;, camera, camera.yaw - halfFov);
+          setRay(&#x27;scp-&#x27; + camera.id + &#x27;-ray-b&#x27;, camera, camera.yaw + halfFov);
+          setCamera(camera);
+          const recorded = centeredPoint(camera);
+          byId(&#x27;scp-record-&#x27; + camera.id + &#x27;-x&#x27;).textContent = format(recorded.x);
+          byId(&#x27;scp-record-&#x27; + camera.id + &#x27;-y&#x27;).textContent = format(recorded.y);
+          byId(&#x27;scp-record-&#x27; + camera.id + &#x27;-yaw&#x27;).textContent = (camera.yaw &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;) + format(camera.yaw);
+        });
+
+        const pairPolygons = pairs.map((pair) =&gt; clipPolygon(polygons[pair[0]], polygons[pair[1]]));
+        byId(&#x27;scp-pair-overlap&#x27;).setAttribute(&#x27;d&#x27;, compoundPath(pairPolygons));
+        const triplePolygons = triples.map((triple) =&gt; {
+          const firstIntersection = clipPolygon(polygons[triple[0]], polygons[triple[1]]);
+          return clipPolygon(firstIntersection, polygons[triple[2]]);
+        });
+        byId(&#x27;scp-multi-overlap&#x27;).setAttribute(&#x27;d&#x27;, compoundPath(triplePolygons));
+
+        setTangent(&#x27;ls&#x27;, ls);
+        setTangent(&#x27;rs&#x27;, rs);
+        updateAxisIntersections(cameras);
+
+        const distanceMeters = Number(byId(&#x27;scp-distance&#x27;).value);
+        const distanceMm = distanceMeters * 1000;
+        byId(&#x27;scp-distance-value&#x27;).textContent = format(distanceMeters) + &#x27; m&#x27;;
+        byId(&#x27;scp-distance&#x27;).setAttribute(&#x27;aria-valuetext&#x27;, format(distanceMeters) + &#x27; m&#x27;);
+
+        [
+          { side: ls, front: cameras.lf },
+          { side: rs, front: cameras.rf }
+        ].forEach(({ side, front }) =&gt; {
+          const recorded = centeredPoint(side);
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-position-value&#x27;).textContent = format(side.position) + &#x27;%&#x27;;
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-offset-value&#x27;).textContent = (side.offset &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;) + format(side.offset) + &#x27;°&#x27;;
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-coordinate&#x27;).textContent = &#x27;(&#x27; + format(recorded.x) + &#x27;, &#x27; + format(recorded.y) + &#x27;) mm&#x27;;
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-yaw&#x27;).textContent = (side.yaw &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;) + format(side.yaw) + &#x27;°&#x27;;
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-baseline&#x27;).textContent = format(Math.hypot(side.x - front.x, side.y - front.y)) + &#x27; mm&#x27;;
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-overlap&#x27;).textContent = format(angularOverlap(side, front, distanceMm)) + &#x27;°&#x27;;
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-position&#x27;).setAttribute(&#x27;aria-valuetext&#x27;, format(side.position) + &#x27;%&#x27;);
+          byId(&#x27;scp-&#x27; + side.id + &#x27;-offset&#x27;).setAttribute(&#x27;aria-valuetext&#x27;, format(side.offset) + &#x27;°，实际偏航 &#x27; + format(side.yaw) + &#x27;°&#x27;);
+        });
+      }
+
+      async function exportTransparentPng() {
+        const button = byId(&#x27;scp-export-png&#x27;);
+        const status = byId(&#x27;scp-export-status&#x27;);
+        button.disabled = true;
+        status.textContent = &#x27;正在生成…&#x27;;
+        try {
+          const sourceSvg = byId(&#x27;scp-planner-svg&#x27;);
+          const clonedSvg = sourceSvg.cloneNode(true);
+          const sourceElements = [sourceSvg, ...sourceSvg.querySelectorAll(&#x27;*&#x27;)];
+          const clonedElements = [clonedSvg, ...clonedSvg.querySelectorAll(&#x27;*&#x27;)];
+          const copiedProperties = [
+            &#x27;color&#x27;,
+            &#x27;fill&#x27;,
+            &#x27;fill-opacity&#x27;,
+            &#x27;stroke&#x27;,
+            &#x27;stroke-opacity&#x27;,
+            &#x27;stroke-width&#x27;,
+            &#x27;stroke-linecap&#x27;,
+            &#x27;stroke-linejoin&#x27;,
+            &#x27;stroke-dasharray&#x27;,
+            &#x27;opacity&#x27;,
+            &#x27;font-family&#x27;,
+            &#x27;font-size&#x27;,
+            &#x27;font-weight&#x27;,
+            &#x27;text-anchor&#x27;
+          ];
+          sourceElements.forEach((element, index) =&gt; {
+            const computed = window.getComputedStyle(element);
+            const clone = clonedElements[index];
+            copiedProperties.forEach((property) =&gt; {
+              const value = computed.getPropertyValue(property);
+              if (value) clone.style.setProperty(property, value);
+            });
+          });
+          const exportWidth = 1520;
+          const exportHeight = 1680;
+          clonedSvg.setAttribute(&#x27;xmlns&#x27;, &#x27;http://www.w3.org/2000/svg&#x27;);
+          clonedSvg.setAttribute(&#x27;width&#x27;, String(exportWidth));
+          clonedSvg.setAttribute(&#x27;height&#x27;, String(exportHeight));
+
+          const serialized = new XMLSerializer().serializeToString(clonedSvg);
+          const svgBlob = new Blob([serialized], { type: &#x27;image/svg+xml;charset=utf-8&#x27; });
+          const svgUrl = URL.createObjectURL(svgBlob);
+          const image = new Image();
+          try {
+            await new Promise((resolve, reject) =&gt; {
+              image.onload = resolve;
+              image.onerror = reject;
+              image.src = svgUrl;
+            });
+            const canvas = document.createElement(&#x27;canvas&#x27;);
+            canvas.width = exportWidth;
+            canvas.height = exportHeight;
+            const context = canvas.getContext(&#x27;2d&#x27;);
+            context.clearRect(0, 0, exportWidth, exportHeight);
+            context.drawImage(image, 0, 0, exportWidth, exportHeight);
+            const pngBlob = await new Promise((resolve, reject) =&gt; {
+              canvas.toBlob((blob) =&gt; blob ? resolve(blob) : reject(new Error(&#x27;PNG export failed&#x27;)), &#x27;image/png&#x27;);
+            });
+            const pngUrl = URL.createObjectURL(pngBlob);
+            const link = document.createElement(&#x27;a&#x27;);
+            const timestamp = new Date().toISOString().slice(0, 19).replaceAll(&#x27;:&#x27;, &#x27;-&#x27;);
+            link.href = pngUrl;
+            link.download = &#x27;headband-camera-layout-&#x27; + timestamp + &#x27;.png&#x27;;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(pngUrl);
+            status.textContent = &#x27;已导出透明 PNG&#x27;;
+          } finally {
+            URL.revokeObjectURL(svgUrl);
+          }
+        } catch (error) {
+          status.textContent = &#x27;导出失败，请重试&#x27;;
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      setStaticGeometry();
+      root.querySelectorAll(&#x27;input&#x27;).forEach((input) =&gt; input.addEventListener(&#x27;input&#x27;, update));
+      byId(&#x27;scp-export-png&#x27;).addEventListener(&#x27;click&#x27;, exportTransparentPng);
+      update();
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
