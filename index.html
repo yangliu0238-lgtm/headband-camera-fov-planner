@@ -6,7 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>头环相机 FOV 规划器</title>
-<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;max-width:736px;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;max-width:1440px;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
 </head>
 <body>
 <iframe sandbox="allow-scripts allow-downloads" referrerpolicy="no-referrer" title="头环相机 FOV 规划器" srcdoc="&lt;!doctype html&gt;
@@ -820,9 +820,26 @@ html&gt;body{padding:0}&lt;/style&gt;
       color: var(--foreground);
       font-family: inherit;
     }
+    #side-camera-contour-planner .planner-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.85fr);
+      gap: 18px;
+      align-items: start;
+    }
+    #side-camera-contour-planner .visual-panel {
+      min-width: 0;
+      position: sticky;
+      top: 12px;
+    }
+    #side-camera-contour-planner .control-panel {
+      min-width: 0;
+      border-left: 1px solid var(--border);
+      padding-left: 18px;
+    }
     #side-camera-contour-planner .planner-controls {
-      align-items: end;
-      margin-bottom: 8px;
+      display: grid;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     #side-camera-contour-planner .range-field {
       flex: 1 1 220px;
@@ -846,7 +863,36 @@ html&gt;body{padding:0}&lt;/style&gt;
       margin-bottom: 8px;
     }
     #side-camera-contour-planner .planner-table input[type=&quot;range&quot;] {
-      min-width: 150px;
+      min-width: 0;
+      width: 100%;
+    }
+    #side-camera-contour-planner .paired-control {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 78px;
+      gap: 8px;
+      align-items: center;
+    }
+    #side-camera-contour-planner .paired-control input[type=&quot;number&quot;] {
+      width: 100%;
+      min-width: 0;
+      padding: 4px 6px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--foreground);
+      background: var(--background);
+      font: inherit;
+      font-variant-numeric: tabular-nums;
+    }
+    #side-camera-contour-planner input[type=&quot;range&quot;] {
+      accent-color: rgb(31 36 43);
+    }
+    #side-camera-contour-planner input[type=&quot;range&quot;]::-webkit-slider-thumb {
+      background: rgb(31 36 43);
+      border-color: rgb(31 36 43);
+    }
+    #side-camera-contour-planner input[type=&quot;range&quot;]::-moz-range-thumb {
+      background: rgb(31 36 43);
+      border-color: rgb(31 36 43);
     }
     #side-camera-contour-planner figure {
       margin: 0;
@@ -964,7 +1010,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     #side-camera-contour-planner .coordinate-origin {
       fill: var(--foreground);
     }
-    #side-camera-contour-planner .axis-intersection {
+    #side-camera-contour-planner .fov-intersection {
       fill: var(--viz-series-6);
       stroke: var(--background);
       stroke-width: 2;
@@ -1008,109 +1054,38 @@ html&gt;body{padding:0}&lt;/style&gt;
       background: var(--viz-series-6);
       opacity: 0.72;
     }
+    #side-camera-contour-planner .section-title {
+      margin: 14px 0 6px;
+      font-size: calc(var(--font-size-base) * 0.92);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    #side-camera-contour-planner .intersection-list {
+      font-variant-numeric: tabular-nums;
+      line-height: 1.55;
+    }
+    @media (max-width: 980px) {
+      #side-camera-contour-planner .planner-workspace {
+        grid-template-columns: 1fr;
+      }
+      #side-camera-contour-planner .visual-panel {
+        position: static;
+      }
+      #side-camera-contour-planner .control-panel {
+        border-left: 0;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 14px;
+      }
+    }
   &lt;/style&gt;
 
-  &lt;div class=&quot;viz-controls planner-controls&quot;&gt;
-    &lt;label class=&quot;form-label range-field&quot; for=&quot;scp-distance&quot;&gt;
-      &lt;span class=&quot;range-head&quot;&gt;&lt;span&gt;共同视野评估距离&lt;/span&gt;&lt;output id=&quot;scp-distance-value&quot; for=&quot;scp-distance&quot;&gt;0.2 m&lt;/output&gt;&lt;/span&gt;
-      &lt;input id=&quot;scp-distance&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0.2&quot; max=&quot;2&quot; step=&quot;0.1&quot; value=&quot;0.2&quot;&gt;
-    &lt;/label&gt;
-    &lt;button id=&quot;scp-export-png&quot; class=&quot;btn&quot; type=&quot;button&quot;&gt;导出透明 PNG&lt;/button&gt;
-    &lt;span id=&quot;scp-export-status&quot; class=&quot;text-small text-muted&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;
-  &lt;/div&gt;
-
-  &lt;p class=&quot;text-small text-muted planner-note&quot;&gt;坐标原点 O 为头环中心，+X 向右、+Y 向前；轨迹位置 0% 靠近前视相机，100% 靠近后侧开口；偏转角 0° 表示光轴朝局部外法线。&lt;/p&gt;
-
-  &lt;div class=&quot;table-responsive&quot;&gt;
-    &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;侧边相机位置与角度控制&quot;&gt;
-      &lt;thead&gt;
-        &lt;tr&gt;
-          &lt;th scope=&quot;col&quot;&gt;相机&lt;/th&gt;
-          &lt;th scope=&quot;col&quot;&gt;外轮廓位置&lt;/th&gt;
-          &lt;th scope=&quot;col&quot;&gt;相对外法线偏转&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;实时光心 O 坐标&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;实际偏航&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;相邻基线&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;共同视野&lt;/th&gt;
-        &lt;/tr&gt;
-      &lt;/thead&gt;
-      &lt;tbody&gt;
-        &lt;tr&gt;
-          &lt;th scope=&quot;row&quot;&gt;左侧 LS&lt;/th&gt;
-          &lt;td&gt;
-            &lt;output id=&quot;scp-ls-position-value&quot; for=&quot;scp-ls-position&quot;&gt;17.5%&lt;/output&gt;
-            &lt;input id=&quot;scp-ls-position&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot;&gt;
-          &lt;/td&gt;
-          &lt;td&gt;
-            &lt;output id=&quot;scp-ls-offset-value&quot; for=&quot;scp-ls-offset&quot;&gt;0.0°&lt;/output&gt;
-            &lt;input id=&quot;scp-ls-offset&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot;&gt;
-          &lt;/td&gt;
-          &lt;td id=&quot;scp-ls-coordinate&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-          &lt;td id=&quot;scp-ls-yaw&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-          &lt;td id=&quot;scp-ls-baseline&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-          &lt;td id=&quot;scp-ls-overlap&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-        &lt;/tr&gt;
-        &lt;tr&gt;
-          &lt;th scope=&quot;row&quot;&gt;右侧 RS&lt;/th&gt;
-          &lt;td&gt;
-            &lt;output id=&quot;scp-rs-position-value&quot; for=&quot;scp-rs-position&quot;&gt;17.5%&lt;/output&gt;
-            &lt;input id=&quot;scp-rs-position&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot;&gt;
-          &lt;/td&gt;
-          &lt;td&gt;
-            &lt;output id=&quot;scp-rs-offset-value&quot; for=&quot;scp-rs-offset&quot;&gt;0.0°&lt;/output&gt;
-            &lt;input id=&quot;scp-rs-offset&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot;&gt;
-          &lt;/td&gt;
-          &lt;td id=&quot;scp-rs-coordinate&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-          &lt;td id=&quot;scp-rs-yaw&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-          &lt;td id=&quot;scp-rs-baseline&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-          &lt;td id=&quot;scp-rs-overlap&quot; class=&quot;text-end text-nowrap&quot;&gt;&lt;/td&gt;
-        &lt;/tr&gt;
-      &lt;/tbody&gt;
-    &lt;/table&gt;
-  &lt;/div&gt;
-
-  &lt;div class=&quot;table-responsive&quot;&gt;
-    &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;四个相机在头环中心坐标系中的实时坐标&quot;&gt;
-      &lt;thead&gt;
-        &lt;tr&gt;
-          &lt;th scope=&quot;col&quot;&gt;相机&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;X (mm)&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;Y (mm)&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;偏航 (°)&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;HFOV (°)&lt;/th&gt;
-        &lt;/tr&gt;
-      &lt;/thead&gt;
-      &lt;tbody&gt;
-        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;左前 LF&lt;/th&gt;&lt;td id=&quot;scp-record-lf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-lf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-lf-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
-        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;右前 RF&lt;/th&gt;&lt;td id=&quot;scp-record-rf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rf-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
-        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;左侧 LS&lt;/th&gt;&lt;td id=&quot;scp-record-ls-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-ls-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-ls-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
-        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;右侧 RS&lt;/th&gt;&lt;td id=&quot;scp-record-rs-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rs-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rs-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
-      &lt;/tbody&gt;
-    &lt;/table&gt;
-  &lt;/div&gt;
-
-  &lt;div class=&quot;table-responsive&quot;&gt;
-    &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;相邻相机中心光轴的实时交点坐标&quot;&gt;
-      &lt;thead&gt;
-        &lt;tr&gt;
-          &lt;th scope=&quot;col&quot;&gt;相邻光轴&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;交点 X (mm)&lt;/th&gt;
-          &lt;th scope=&quot;col&quot; class=&quot;text-end&quot;&gt;交点 Y (mm)&lt;/th&gt;
-          &lt;th scope=&quot;col&quot;&gt;状态&lt;/th&gt;
-        &lt;/tr&gt;
-      &lt;/thead&gt;
-      &lt;tbody&gt;
-        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LS — LF&lt;/th&gt;&lt;td id=&quot;scp-cross-ls-lf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-ls-lf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-ls-lf-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
-        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LF — RF&lt;/th&gt;&lt;td id=&quot;scp-cross-lf-rf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-lf-rf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-lf-rf-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
-        &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;RF — RS&lt;/th&gt;&lt;td id=&quot;scp-cross-rf-rs-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-rf-rs-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-rf-rs-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
-      &lt;/tbody&gt;
-    &lt;/table&gt;
-  &lt;/div&gt;
-
-  &lt;figure aria-label=&quot;四个80度RGB相机沿头环外轮廓布置后的俯视视场&quot;&gt;
+  &lt;div class=&quot;planner-workspace&quot;&gt;
+    &lt;section class=&quot;visual-panel&quot;&gt;
+      &lt;figure aria-label=&quot;四个80度RGB相机沿头环外轮廓布置后的俯视视场&quot;&gt;
     &lt;svg id=&quot;scp-planner-svg&quot; class=&quot;planner-svg&quot; viewBox=&quot;0 0 760 840&quot; role=&quot;img&quot; aria-labelledby=&quot;scp-title scp-desc&quot;&gt;
       &lt;title id=&quot;scp-title&quot;&gt;侧边相机外轮廓位置与视场规划&lt;/title&gt;
-      &lt;desc id=&quot;scp-desc&quot;&gt;坐标原点位于头环中心，X轴向右，Y轴向前。左右前视相机间距60毫米且朝向正前方。左右侧相机沿头环左右外轮廓移动，光轴默认朝局部切线的外法向，所有相机水平视场角为80度。任意两个视场的交叉区域用独立颜色显示。&lt;/desc&gt;
+      &lt;desc id=&quot;scp-desc&quot;&gt;坐标原点位于头环中心，X轴向右，Y轴向前。左右前视相机间距60毫米且朝向正前方。左右侧相机沿头环左右外轮廓移动，光轴默认朝局部切线的外法向，所有相机水平视场角为80度。任意两个视场的交叉区域用独立颜色显示，相邻相机的FOV边界射线交点用圆点标记。&lt;/desc&gt;
       &lt;defs&gt;
         &lt;marker id=&quot;scp-axis-arrow&quot; markerWidth=&quot;7&quot; markerHeight=&quot;7&quot; refX=&quot;5.5&quot; refY=&quot;3.5&quot; orient=&quot;auto&quot;&gt;
           &lt;path d=&quot;M0,0 L7,3.5 L0,7 Z&quot; fill=&quot;var(--muted-foreground)&quot;&gt;&lt;/path&gt;
@@ -1153,18 +1128,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;line id=&quot;scp-ls-tangent&quot; class=&quot;tangent&quot;&gt;&lt;/line&gt;
       &lt;line id=&quot;scp-rs-tangent&quot; class=&quot;tangent&quot;&gt;&lt;/line&gt;
 
-      &lt;g id=&quot;scp-cross-ls-lf-marker&quot;&gt;
-        &lt;circle r=&quot;6&quot; class=&quot;axis-intersection&quot;&gt;&lt;/circle&gt;
-        &lt;text class=&quot;secondary-label&quot; x=&quot;9&quot; y=&quot;-8&quot;&gt;LS–LF&lt;/text&gt;
-      &lt;/g&gt;
-      &lt;g id=&quot;scp-cross-lf-rf-marker&quot;&gt;
-        &lt;circle r=&quot;6&quot; class=&quot;axis-intersection&quot;&gt;&lt;/circle&gt;
-        &lt;text class=&quot;secondary-label&quot; x=&quot;9&quot; y=&quot;-8&quot;&gt;LF–RF&lt;/text&gt;
-      &lt;/g&gt;
-      &lt;g id=&quot;scp-cross-rf-rs-marker&quot;&gt;
-        &lt;circle r=&quot;6&quot; class=&quot;axis-intersection&quot;&gt;&lt;/circle&gt;
-        &lt;text class=&quot;secondary-label&quot; x=&quot;9&quot; y=&quot;-8&quot;&gt;RF–RS&lt;/text&gt;
-      &lt;/g&gt;
+      &lt;g id=&quot;scp-fov-cross-markers&quot; aria-label=&quot;相邻相机FOV边界射线交点&quot;&gt;&lt;/g&gt;
 
       &lt;path id=&quot;scp-dimension&quot; class=&quot;measure&quot;&gt;&lt;/path&gt;
       &lt;text id=&quot;scp-dimension-label&quot; class=&quot;secondary-label&quot; text-anchor=&quot;middle&quot;&gt;60 mm&lt;/text&gt;
@@ -1196,12 +1160,77 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;text id=&quot;scp-ls-label&quot; class=&quot;label&quot; text-anchor=&quot;end&quot;&gt;LS&lt;/text&gt;
       &lt;text id=&quot;scp-rs-label&quot; class=&quot;label&quot;&gt;RS&lt;/text&gt;
     &lt;/svg&gt;
-  &lt;/figure&gt;
+      &lt;/figure&gt;
+      &lt;div class=&quot;legend text-small text-muted&quot; aria-label=&quot;视场颜色说明&quot;&gt;
+        &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-single&quot;&gt;&lt;/span&gt;单镜头视场&lt;/span&gt;
+        &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-overlap&quot;&gt;&lt;/span&gt;两个镜头交叉视场&lt;/span&gt;
+        &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-multi&quot;&gt;&lt;/span&gt;三个及以上镜头交叉视场&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
 
-  &lt;div class=&quot;legend text-small text-muted&quot; aria-label=&quot;视场颜色说明&quot;&gt;
-    &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-single&quot;&gt;&lt;/span&gt;单镜头视场&lt;/span&gt;
-    &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-overlap&quot;&gt;&lt;/span&gt;两个镜头交叉视场&lt;/span&gt;
-    &lt;span class=&quot;legend-item&quot;&gt;&lt;span class=&quot;swatch swatch-multi&quot;&gt;&lt;/span&gt;三个及以上镜头交叉视场&lt;/span&gt;
+    &lt;aside class=&quot;control-panel&quot; aria-label=&quot;相机参数与实时计算&quot;&gt;
+      &lt;div class=&quot;planner-controls&quot;&gt;
+        &lt;label class=&quot;form-label range-field&quot; for=&quot;scp-distance&quot;&gt;
+          &lt;span class=&quot;range-head&quot;&gt;&lt;span&gt;共同视野评估距离&lt;/span&gt;&lt;output id=&quot;scp-distance-value&quot; for=&quot;scp-distance&quot;&gt;0.2 m&lt;/output&gt;&lt;/span&gt;
+          &lt;span class=&quot;paired-control&quot;&gt;
+            &lt;input id=&quot;scp-distance&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0.2&quot; max=&quot;2&quot; step=&quot;0.1&quot; value=&quot;0.2&quot;&gt;
+            &lt;input id=&quot;scp-distance-number&quot; type=&quot;number&quot; min=&quot;0.2&quot; max=&quot;2&quot; step=&quot;0.1&quot; value=&quot;0.2&quot; aria-label=&quot;共同视野评估距离，米&quot;&gt;
+          &lt;/span&gt;
+        &lt;/label&gt;
+        &lt;button id=&quot;scp-export-png&quot; class=&quot;btn&quot; type=&quot;button&quot;&gt;导出透明 PNG&lt;/button&gt;
+        &lt;span id=&quot;scp-export-status&quot; class=&quot;text-small text-muted&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;
+      &lt;/div&gt;
+
+      &lt;p class=&quot;text-small text-muted planner-note&quot;&gt;坐标原点 O 为头环中心，+X 向右、+Y 向前；轨迹位置 0% 靠近前视相机，100% 靠近后侧开口；偏转角 0° 表示光轴朝局部外法线。&lt;/p&gt;
+
+      &lt;h3 class=&quot;section-title&quot;&gt;侧边相机参数&lt;/h3&gt;
+      &lt;div class=&quot;table-responsive&quot;&gt;
+        &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;侧边相机位置与角度控制&quot;&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;参数&lt;/th&gt;&lt;th&gt;左侧 LS&lt;/th&gt;&lt;th&gt;右侧 RS&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;
+              &lt;th scope=&quot;row&quot;&gt;轮廓位置&lt;/th&gt;
+              &lt;td&gt;&lt;div class=&quot;paired-control&quot;&gt;&lt;input id=&quot;scp-ls-position&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot;&gt;&lt;input id=&quot;scp-ls-position-number&quot; type=&quot;number&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot; aria-label=&quot;左侧相机轮廓位置百分比&quot;&gt;&lt;/div&gt;&lt;output id=&quot;scp-ls-position-value&quot; for=&quot;scp-ls-position&quot;&gt;17.5%&lt;/output&gt;&lt;/td&gt;
+              &lt;td&gt;&lt;div class=&quot;paired-control&quot;&gt;&lt;input id=&quot;scp-rs-position&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot;&gt;&lt;input id=&quot;scp-rs-position-number&quot; type=&quot;number&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;17.5&quot; aria-label=&quot;右侧相机轮廓位置百分比&quot;&gt;&lt;/div&gt;&lt;output id=&quot;scp-rs-position-value&quot; for=&quot;scp-rs-position&quot;&gt;17.5%&lt;/output&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+              &lt;th scope=&quot;row&quot;&gt;偏转角&lt;/th&gt;
+              &lt;td&gt;&lt;div class=&quot;paired-control&quot;&gt;&lt;input id=&quot;scp-ls-offset&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot;&gt;&lt;input id=&quot;scp-ls-offset-number&quot; type=&quot;number&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot; aria-label=&quot;左侧相机相对外法线偏转角&quot;&gt;&lt;/div&gt;&lt;output id=&quot;scp-ls-offset-value&quot; for=&quot;scp-ls-offset&quot;&gt;0.0°&lt;/output&gt;&lt;/td&gt;
+              &lt;td&gt;&lt;div class=&quot;paired-control&quot;&gt;&lt;input id=&quot;scp-rs-offset&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot;&gt;&lt;input id=&quot;scp-rs-offset-number&quot; type=&quot;number&quot; min=&quot;-90&quot; max=&quot;90&quot; step=&quot;0.5&quot; value=&quot;0&quot; aria-label=&quot;右侧相机相对外法线偏转角&quot;&gt;&lt;/div&gt;&lt;output id=&quot;scp-rs-offset-value&quot; for=&quot;scp-rs-offset&quot;&gt;0.0°&lt;/output&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;光心坐标&lt;/th&gt;&lt;td id=&quot;scp-ls-coordinate&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-coordinate&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;实际偏航&lt;/th&gt;&lt;td id=&quot;scp-ls-yaw&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-yaw&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;相邻基线&lt;/th&gt;&lt;td id=&quot;scp-ls-baseline&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-baseline&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;共同视野&lt;/th&gt;&lt;td id=&quot;scp-ls-overlap&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-rs-overlap&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+
+      &lt;h3 class=&quot;section-title&quot;&gt;四相机坐标&lt;/h3&gt;
+      &lt;div class=&quot;table-responsive&quot;&gt;
+        &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;四个相机在头环中心坐标系中的实时坐标&quot;&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;相机&lt;/th&gt;&lt;th class=&quot;text-end&quot;&gt;X (mm)&lt;/th&gt;&lt;th class=&quot;text-end&quot;&gt;Y (mm)&lt;/th&gt;&lt;th class=&quot;text-end&quot;&gt;偏航 (°)&lt;/th&gt;&lt;th class=&quot;text-end&quot;&gt;HFOV (°)&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;左前 LF&lt;/th&gt;&lt;td id=&quot;scp-record-lf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-lf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-lf-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;右前 RF&lt;/th&gt;&lt;td id=&quot;scp-record-rf-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rf-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rf-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;左侧 LS&lt;/th&gt;&lt;td id=&quot;scp-record-ls-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-ls-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-ls-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;右侧 RS&lt;/th&gt;&lt;td id=&quot;scp-record-rs-x&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rs-y&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-record-rs-yaw&quot; class=&quot;text-end&quot;&gt;&lt;/td&gt;&lt;td class=&quot;text-end&quot;&gt;80.0&lt;/td&gt;&lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+
+      &lt;h3 class=&quot;section-title&quot;&gt;相邻 FOV 边界交点&lt;/h3&gt;
+      &lt;div class=&quot;table-responsive&quot;&gt;
+        &lt;table class=&quot;table table-sm planner-table&quot; aria-label=&quot;相邻相机FOV边界射线的实时交点坐标&quot;&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;相邻 FOV&lt;/th&gt;&lt;th&gt;正向边界交点坐标 (mm)&lt;/th&gt;&lt;th&gt;状态&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LS — LF&lt;/th&gt;&lt;td id=&quot;scp-cross-ls-lf-points&quot; class=&quot;intersection-list&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-ls-lf-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;LF — RF&lt;/th&gt;&lt;td id=&quot;scp-cross-lf-rf-points&quot; class=&quot;intersection-list&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-lf-rf-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+            &lt;tr&gt;&lt;th scope=&quot;row&quot;&gt;RF — RS&lt;/th&gt;&lt;td id=&quot;scp-cross-rf-rs-points&quot; class=&quot;intersection-list&quot;&gt;&lt;/td&gt;&lt;td id=&quot;scp-cross-rf-rs-status&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+    &lt;/aside&gt;
   &lt;/div&gt;
 
   &lt;script&gt;
@@ -1258,7 +1287,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         [&#x27;lf&#x27;, &#x27;ls&#x27;, &#x27;rs&#x27;],
         [&#x27;rf&#x27;, &#x27;ls&#x27;, &#x27;rs&#x27;]
       ];
-      const adjacentAxisPairs = [
+      const adjacentFovPairs = [
         [&#x27;ls&#x27;, &#x27;lf&#x27;],
         [&#x27;lf&#x27;, &#x27;rf&#x27;],
         [&#x27;rf&#x27;, &#x27;rs&#x27;]
@@ -1487,58 +1516,85 @@ html&gt;body{padding:0}&lt;/style&gt;
         return count * step;
       }
 
-      function forwardRayIntersection(first, second) {
+      function forwardRayIntersection(first, firstAngle, second, secondAngle) {
         const firstDirection = {
-          x: Math.sin(rad(first.yaw)),
-          y: Math.cos(rad(first.yaw))
+          x: Math.sin(rad(firstAngle)),
+          y: Math.cos(rad(firstAngle))
         };
         const secondDirection = {
-          x: Math.sin(rad(second.yaw)),
-          y: Math.cos(rad(second.yaw))
+          x: Math.sin(rad(secondAngle)),
+          y: Math.cos(rad(secondAngle))
         };
         const denominator = cross(firstDirection, secondDirection);
-        if (Math.abs(denominator) &lt; 1e-8) {
-          return { point: null, status: &#x27;无交点：光轴平行&#x27; };
-        }
+        if (Math.abs(denominator) &lt; 1e-8) return null;
         const offset = {
           x: second.x - first.x,
           y: second.y - first.y
         };
         const firstDistance = cross(offset, secondDirection) / denominator;
         const secondDistance = cross(offset, firstDirection) / denominator;
-        if (firstDistance &lt; 0 || secondDistance &lt; 0) {
-          return { point: null, status: &#x27;无交点：交点位于光轴反向&#x27; };
-        }
+        if (firstDistance &lt; -1e-7 || secondDistance &lt; -1e-7) return null;
         return {
-          point: {
-            x: first.x + firstDirection.x * firstDistance,
-            y: first.y + firstDirection.y * firstDistance
-          },
-          status: &#x27;正向光轴相交&#x27;
+          x: first.x + firstDirection.x * firstDistance,
+          y: first.y + firstDirection.y * firstDistance
         };
       }
 
-      function updateAxisIntersections(cameras) {
-        adjacentAxisPairs.forEach(([firstId, secondId]) =&gt; {
+      function fovBoundaryIntersections(first, second) {
+        const firstAngles = [first.yaw - first.fov / 2, first.yaw + first.fov / 2];
+        const secondAngles = [second.yaw - second.fov / 2, second.yaw + second.fov / 2];
+        const intersections = [];
+        firstAngles.forEach((firstAngle) =&gt; {
+          secondAngles.forEach((secondAngle) =&gt; {
+            const point = forwardRayIntersection(first, firstAngle, second, secondAngle);
+            if (!point) return;
+            const duplicate = intersections.some((candidate) =&gt; Math.hypot(candidate.x - point.x, candidate.y - point.y) &lt; 0.1);
+            if (!duplicate) intersections.push(point);
+          });
+        });
+        return intersections.sort((a, b) =&gt; {
+          const firstDistance = Math.hypot(a.x - first.x, a.y - first.y);
+          const secondDistance = Math.hypot(b.x - first.x, b.y - first.y);
+          return firstDistance - secondDistance;
+        });
+      }
+
+      function updateFovBoundaryIntersections(cameras) {
+        const markerGroup = byId(&#x27;scp-fov-cross-markers&#x27;);
+        markerGroup.replaceChildren();
+        const svgNamespace = &#x27;http://www.w3.org/2000/svg&#x27;;
+        adjacentFovPairs.forEach(([firstId, secondId]) =&gt; {
           const key = firstId + &#x27;-&#x27; + secondId;
-          const result = forwardRayIntersection(cameras[firstId], cameras[secondId]);
-          const xCell = byId(&#x27;scp-cross-&#x27; + key + &#x27;-x&#x27;);
-          const yCell = byId(&#x27;scp-cross-&#x27; + key + &#x27;-y&#x27;);
+          const intersections = fovBoundaryIntersections(cameras[firstId], cameras[secondId]);
+          const pointsCell = byId(&#x27;scp-cross-&#x27; + key + &#x27;-points&#x27;);
           const statusCell = byId(&#x27;scp-cross-&#x27; + key + &#x27;-status&#x27;);
-          const marker = byId(&#x27;scp-cross-&#x27; + key + &#x27;-marker&#x27;);
-          statusCell.textContent = result.status;
-          if (!result.point) {
-            xCell.textContent = &#x27;—&#x27;;
-            yCell.textContent = &#x27;—&#x27;;
-            marker.setAttribute(&#x27;display&#x27;, &#x27;none&#x27;);
+          if (!intersections.length) {
+            pointsCell.textContent = &#x27;—&#x27;;
+            statusCell.textContent = &#x27;无正向边界交点&#x27;;
             return;
           }
-          const recorded = centeredPoint(result.point);
-          const mapped = map(result.point);
-          xCell.textContent = format(recorded.x);
-          yCell.textContent = format(recorded.y);
-          marker.removeAttribute(&#x27;display&#x27;);
-          marker.setAttribute(&#x27;transform&#x27;, &#x27;translate(&#x27; + format(mapped.x) + &#x27; &#x27; + format(mapped.y) + &#x27;)&#x27;);
+          pointsCell.replaceChildren();
+          intersections.forEach((point, index) =&gt; {
+            const recorded = centeredPoint(point);
+            const line = document.createElement(&#x27;div&#x27;);
+            line.textContent = &#x27;P&#x27; + (index + 1) + &#x27; (&#x27; + format(recorded.x) + &#x27;, &#x27; + format(recorded.y) + &#x27;)&#x27;;
+            pointsCell.appendChild(line);
+
+            const mapped = map(point);
+            const marker = document.createElementNS(svgNamespace, &#x27;g&#x27;);
+            marker.setAttribute(&#x27;transform&#x27;, &#x27;translate(&#x27; + format(mapped.x) + &#x27; &#x27; + format(mapped.y) + &#x27;)&#x27;);
+            const circle = document.createElementNS(svgNamespace, &#x27;circle&#x27;);
+            circle.setAttribute(&#x27;r&#x27;, &#x27;5&#x27;);
+            circle.setAttribute(&#x27;class&#x27;, &#x27;fov-intersection&#x27;);
+            const label = document.createElementNS(svgNamespace, &#x27;text&#x27;);
+            label.setAttribute(&#x27;class&#x27;, &#x27;secondary-label&#x27;);
+            label.setAttribute(&#x27;x&#x27;, &#x27;8&#x27;);
+            label.setAttribute(&#x27;y&#x27;, &#x27;-7&#x27;);
+            label.textContent = firstId.toUpperCase() + &#x27;–&#x27; + secondId.toUpperCase() + &#x27; P&#x27; + (index + 1);
+            marker.append(circle, label);
+            markerGroup.appendChild(marker);
+          });
+          statusCell.textContent = intersections.length + &#x27; 个交点&#x27;;
         });
       }
 
@@ -1682,7 +1738,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
         setTangent(&#x27;ls&#x27;, ls);
         setTangent(&#x27;rs&#x27;, rs);
-        updateAxisIntersections(cameras);
+        updateFovBoundaryIntersections(cameras);
 
         const distanceMeters = Number(byId(&#x27;scp-distance&#x27;).value);
         const distanceMm = distanceMeters * 1000;
@@ -1784,8 +1840,36 @@ html&gt;body{padding:0}&lt;/style&gt;
         }
       }
 
+      function bindPairedInputs(rangeId, numberId) {
+        const rangeInput = byId(rangeId);
+        const numberInput = byId(numberId);
+        const clamp = (value) =&gt; Math.min(Number(rangeInput.max), Math.max(Number(rangeInput.min), value));
+        rangeInput.addEventListener(&#x27;input&#x27;, () =&gt; {
+          numberInput.value = rangeInput.value;
+          update();
+        });
+        numberInput.addEventListener(&#x27;input&#x27;, () =&gt; {
+          if (numberInput.value === &#x27;&#x27;) return;
+          const value = Number(numberInput.value);
+          if (!Number.isFinite(value)) return;
+          rangeInput.value = String(clamp(value));
+          update();
+        });
+        numberInput.addEventListener(&#x27;change&#x27;, () =&gt; {
+          const value = Number(numberInput.value);
+          const normalized = Number.isFinite(value) ? clamp(value) : Number(rangeInput.value);
+          numberInput.value = String(normalized);
+          rangeInput.value = String(normalized);
+          update();
+        });
+      }
+
       setStaticGeometry();
-      root.querySelectorAll(&#x27;input&#x27;).forEach((input) =&gt; input.addEventListener(&#x27;input&#x27;, update));
+      bindPairedInputs(&#x27;scp-distance&#x27;, &#x27;scp-distance-number&#x27;);
+      bindPairedInputs(&#x27;scp-ls-position&#x27;, &#x27;scp-ls-position-number&#x27;);
+      bindPairedInputs(&#x27;scp-ls-offset&#x27;, &#x27;scp-ls-offset-number&#x27;);
+      bindPairedInputs(&#x27;scp-rs-position&#x27;, &#x27;scp-rs-position-number&#x27;);
+      bindPairedInputs(&#x27;scp-rs-offset&#x27;, &#x27;scp-rs-offset-number&#x27;);
       byId(&#x27;scp-export-png&#x27;).addEventListener(&#x27;click&#x27;, exportTransparentPng);
       update();
     })();
