@@ -1005,6 +1005,23 @@ html&gt;body{padding:0}&lt;/style&gt;
       stroke-dasharray: 4 4;
       opacity: 0.82;
     }
+    #side-camera-contour-planner .whole-fov-extension {
+      fill: none;
+      stroke: var(--viz-series-6);
+      stroke-width: 1.25;
+      stroke-dasharray: 5 4;
+      opacity: 0.9;
+    }
+    #side-camera-contour-planner .whole-fov-arc {
+      fill: none;
+      stroke: var(--viz-series-6);
+      stroke-width: 2.2;
+    }
+    #side-camera-contour-planner .whole-fov-vertex {
+      fill: var(--viz-series-6);
+      stroke: var(--background);
+      stroke-width: 2;
+    }
     #side-camera-contour-planner .coordinate-axis {
       fill: none;
       stroke: var(--muted-foreground);
@@ -1070,6 +1087,20 @@ html&gt;body{padding:0}&lt;/style&gt;
     #side-camera-contour-planner .intersection-list {
       font-variant-numeric: tabular-nums;
       line-height: 1.55;
+    }
+    #side-camera-contour-planner .whole-fov-card {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    #side-camera-contour-planner .whole-fov-card &gt; div {
+      min-width: 0;
+    }
+    #side-camera-contour-planner .whole-fov-card output {
+      display: block;
+      margin-top: 3px;
+      font-variant-numeric: tabular-nums;
     }
     @media (max-width: 980px) {
       #side-camera-contour-planner .planner-workspace {
@@ -1144,6 +1175,14 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;text id=&quot;scp-baseline-ls-rs-label&quot; class=&quot;secondary-label&quot; text-anchor=&quot;middle&quot;&gt;&lt;/text&gt;
       &lt;/g&gt;
 
+      &lt;g id=&quot;scp-whole-fov-angle&quot; aria-label=&quot;LS左边缘与RS右边缘延长线构成的整机水平视场角&quot;&gt;
+        &lt;line id=&quot;scp-whole-fov-extension-left&quot; class=&quot;whole-fov-extension&quot;&gt;&lt;/line&gt;
+        &lt;line id=&quot;scp-whole-fov-extension-right&quot; class=&quot;whole-fov-extension&quot;&gt;&lt;/line&gt;
+        &lt;path id=&quot;scp-whole-fov-arc&quot; class=&quot;whole-fov-arc&quot;&gt;&lt;/path&gt;
+        &lt;circle id=&quot;scp-whole-fov-vertex&quot; r=&quot;4&quot; class=&quot;whole-fov-vertex&quot;&gt;&lt;/circle&gt;
+        &lt;text id=&quot;scp-whole-fov-label&quot; class=&quot;label&quot; text-anchor=&quot;middle&quot;&gt;&lt;/text&gt;
+      &lt;/g&gt;
+
       &lt;g id=&quot;scp-fov-cross-markers&quot; aria-label=&quot;相邻相机FOV边界射线交点&quot;&gt;&lt;/g&gt;
 
       &lt;path id=&quot;scp-dimension&quot; class=&quot;measure&quot;&gt;&lt;/path&gt;
@@ -1198,6 +1237,13 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;/div&gt;
 
       &lt;p class=&quot;text-small text-muted planner-note&quot;&gt;坐标原点 O 为头环中心，+X 向右、+Y 向前；轨迹位置 0% 靠近前视相机，100% 靠近后侧开口；偏转角 0° 表示光轴朝局部外法线。&lt;/p&gt;
+
+      &lt;h3 class=&quot;section-title&quot;&gt;整机水平大 FOV&lt;/h3&gt;
+      &lt;div class=&quot;card whole-fov-card&quot; aria-label=&quot;整机水平视场角实时结果&quot;&gt;
+        &lt;div&gt;&lt;span class=&quot;text-small text-muted&quot;&gt;LS 左边缘方向&lt;/span&gt;&lt;output id=&quot;scp-whole-fov-left-angle&quot;&gt;&lt;/output&gt;&lt;/div&gt;
+        &lt;div&gt;&lt;span class=&quot;text-small text-muted&quot;&gt;RS 右边缘方向&lt;/span&gt;&lt;output id=&quot;scp-whole-fov-right-angle&quot;&gt;&lt;/output&gt;&lt;/div&gt;
+        &lt;div&gt;&lt;span class=&quot;text-small text-muted&quot;&gt;整机水平 FOV&lt;/span&gt;&lt;output id=&quot;scp-whole-fov-value&quot;&gt;&lt;/output&gt;&lt;/div&gt;
+      &lt;/div&gt;
 
       &lt;h3 class=&quot;section-title&quot;&gt;侧边相机参数&lt;/h3&gt;
       &lt;div class=&quot;table-responsive&quot;&gt;
@@ -1548,6 +1594,94 @@ html&gt;body{padding:0}&lt;/style&gt;
         label.textContent = format(distance) + &#x27; mm&#x27;;
       }
 
+      function positiveAngularSweep(startAngle, endAngle) {
+        return ((endAngle - startAngle) % 360 + 360) % 360;
+      }
+
+      function infiniteLineIntersection(first, firstAngle, second, secondAngle) {
+        const firstDirection = {
+          x: Math.sin(rad(firstAngle)),
+          y: Math.cos(rad(firstAngle))
+        };
+        const secondDirection = {
+          x: Math.sin(rad(secondAngle)),
+          y: Math.cos(rad(secondAngle))
+        };
+        const denominator = cross(firstDirection, secondDirection);
+        if (Math.abs(denominator) &lt; 1e-8) return null;
+        const offset = {
+          x: second.x - first.x,
+          y: second.y - first.y
+        };
+        const firstDistance = cross(offset, secondDirection) / denominator;
+        return {
+          x: first.x + firstDirection.x * firstDistance,
+          y: first.y + firstDirection.y * firstDistance
+        };
+      }
+
+      function setWholeFov(ls, rs) {
+        const leftOuterAngle = ls.yaw - ls.fov / 2;
+        const rightOuterAngle = rs.yaw + rs.fov / 2;
+        const wholeFov = positiveAngularSweep(leftOuterAngle, rightOuterAngle);
+        byId(&#x27;scp-whole-fov-left-angle&#x27;).textContent = (wrap(leftOuterAngle) &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;) + format(wrap(leftOuterAngle)) + &#x27;°&#x27;;
+        byId(&#x27;scp-whole-fov-right-angle&#x27;).textContent = (wrap(rightOuterAngle) &gt; 0 ? &#x27;+&#x27; : &#x27;&#x27;) + format(wrap(rightOuterAngle)) + &#x27;°&#x27;;
+        byId(&#x27;scp-whole-fov-value&#x27;).textContent = format(wholeFov) + &#x27;°&#x27;;
+
+        const group = byId(&#x27;scp-whole-fov-angle&#x27;);
+        const vertex = infiniteLineIntersection(ls, leftOuterAngle, rs, rightOuterAngle);
+        if (!vertex) {
+          group.setAttribute(&#x27;display&#x27;, &#x27;none&#x27;);
+          return;
+        }
+        group.removeAttribute(&#x27;display&#x27;);
+
+        const vertexMapped = map(vertex);
+        const rayLength = 55;
+        const leftEnd = map({
+          x: vertex.x + rayLength * Math.sin(rad(leftOuterAngle)),
+          y: vertex.y + rayLength * Math.cos(rad(leftOuterAngle))
+        });
+        const rightEnd = map({
+          x: vertex.x + rayLength * Math.sin(rad(rightOuterAngle)),
+          y: vertex.y + rayLength * Math.cos(rad(rightOuterAngle))
+        });
+        const leftLine = byId(&#x27;scp-whole-fov-extension-left&#x27;);
+        leftLine.setAttribute(&#x27;x1&#x27;, format(vertexMapped.x));
+        leftLine.setAttribute(&#x27;y1&#x27;, format(vertexMapped.y));
+        leftLine.setAttribute(&#x27;x2&#x27;, format(leftEnd.x));
+        leftLine.setAttribute(&#x27;y2&#x27;, format(leftEnd.y));
+        const rightLine = byId(&#x27;scp-whole-fov-extension-right&#x27;);
+        rightLine.setAttribute(&#x27;x1&#x27;, format(vertexMapped.x));
+        rightLine.setAttribute(&#x27;y1&#x27;, format(vertexMapped.y));
+        rightLine.setAttribute(&#x27;x2&#x27;, format(rightEnd.x));
+        rightLine.setAttribute(&#x27;y2&#x27;, format(rightEnd.y));
+
+        const arcRadius = 28;
+        const arcSteps = Math.max(12, Math.ceil(wholeFov / 5));
+        const arcPoints = [];
+        for (let index = 0; index &lt;= arcSteps; index += 1) {
+          const angle = leftOuterAngle + wholeFov * index / arcSteps;
+          arcPoints.push({
+            x: vertex.x + arcRadius * Math.sin(rad(angle)),
+            y: vertex.y + arcRadius * Math.cos(rad(angle))
+          });
+        }
+        byId(&#x27;scp-whole-fov-arc&#x27;).setAttribute(&#x27;d&#x27;, pathData(arcPoints));
+        const vertexMarker = byId(&#x27;scp-whole-fov-vertex&#x27;);
+        vertexMarker.setAttribute(&#x27;cx&#x27;, format(vertexMapped.x));
+        vertexMarker.setAttribute(&#x27;cy&#x27;, format(vertexMapped.y));
+        const labelAngle = leftOuterAngle + wholeFov / 2;
+        const labelPoint = map({
+          x: vertex.x + 39 * Math.sin(rad(labelAngle)),
+          y: vertex.y + 39 * Math.cos(rad(labelAngle))
+        });
+        const label = byId(&#x27;scp-whole-fov-label&#x27;);
+        label.setAttribute(&#x27;x&#x27;, format(labelPoint.x));
+        label.setAttribute(&#x27;y&#x27;, format(labelPoint.y + 5));
+        label.textContent = format(wholeFov) + &#x27;°&#x27;;
+      }
+
       function cameraVisible(point, camera) {
         const angle = deg(Math.atan2(point.x - camera.x, point.y - camera.y));
         return Math.abs(wrap(angle - camera.yaw)) &lt;= camera.fov / 2 + 1e-8;
@@ -1801,6 +1935,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         setBaseline(&#x27;ls-lf&#x27;, cameras.ls, cameras.lf, centerDistances.lsLf, -10);
         setBaseline(&#x27;rf-rs&#x27;, cameras.rf, cameras.rs, centerDistances.rfRs, -10);
         setBaseline(&#x27;ls-rs&#x27;, cameras.ls, cameras.rs, centerDistances.lsRs, 12);
+        setWholeFov(ls, rs);
         updateFovBoundaryIntersections(cameras);
 
         const distanceMeters = Number(byId(&#x27;scp-distance&#x27;).value);
