@@ -897,11 +897,33 @@ html&gt;body{padding:0}&lt;/style&gt;
     #side-camera-contour-planner figure {
       margin: 0;
     }
+    #side-camera-contour-planner .canvas-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: 6px;
+    }
+    #side-camera-contour-planner .canvas-toolbar .canvas-help {
+      margin-right: auto;
+    }
+    #side-camera-contour-planner .canvas-toolbar output {
+      min-width: 48px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
     #side-camera-contour-planner .planner-svg {
       display: block;
       width: 100%;
       height: auto;
       overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    #side-camera-contour-planner .planner-svg.is-panning {
+      cursor: grabbing;
     }
     #side-camera-contour-planner .head-fill {
       fill: var(--muted);
@@ -1120,8 +1142,15 @@ html&gt;body{padding:0}&lt;/style&gt;
 
   &lt;div class=&quot;planner-workspace&quot;&gt;
     &lt;section class=&quot;visual-panel&quot;&gt;
+      &lt;div class=&quot;canvas-toolbar&quot; aria-label=&quot;画布视图控制&quot;&gt;
+        &lt;span id=&quot;scp-canvas-help&quot; class=&quot;text-small text-muted canvas-help&quot;&gt;拖拽平移 · 滚轮或触控板缩放&lt;/span&gt;
+        &lt;button id=&quot;scp-zoom-out&quot; class=&quot;btn&quot; type=&quot;button&quot; aria-label=&quot;缩小画布&quot;&gt;−&lt;/button&gt;
+        &lt;output id=&quot;scp-zoom-value&quot; aria-live=&quot;polite&quot;&gt;100%&lt;/output&gt;
+        &lt;button id=&quot;scp-zoom-in&quot; class=&quot;btn&quot; type=&quot;button&quot; aria-label=&quot;放大画布&quot;&gt;+&lt;/button&gt;
+        &lt;button id=&quot;scp-reset-view&quot; class=&quot;btn&quot; type=&quot;button&quot;&gt;复位视图&lt;/button&gt;
+      &lt;/div&gt;
       &lt;figure aria-label=&quot;四个80度RGB相机沿头环外轮廓布置后的俯视视场&quot;&gt;
-    &lt;svg id=&quot;scp-planner-svg&quot; class=&quot;planner-svg&quot; viewBox=&quot;0 0 760 840&quot; role=&quot;img&quot; aria-labelledby=&quot;scp-title scp-desc&quot;&gt;
+    &lt;svg id=&quot;scp-planner-svg&quot; class=&quot;planner-svg&quot; viewBox=&quot;0 0 760 840&quot; role=&quot;img&quot; aria-labelledby=&quot;scp-title scp-desc&quot; aria-describedby=&quot;scp-canvas-help&quot;&gt;
       &lt;title id=&quot;scp-title&quot;&gt;侧边相机外轮廓位置与视场规划&lt;/title&gt;
       &lt;desc id=&quot;scp-desc&quot;&gt;坐标原点位于头环中心，X轴向右，Y轴向前。左右前视相机间距60毫米且朝向正前方。左右侧相机沿头环左右外轮廓移动，光轴默认朝局部切线的外法向，所有相机水平视场角为80度。任意两个视场的交叉区域用独立颜色显示，相邻相机的FOV边界射线交点用圆点标记。&lt;/desc&gt;
       &lt;defs&gt;
@@ -1130,6 +1159,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;/marker&gt;
       &lt;/defs&gt;
 
+      &lt;g id=&quot;scp-scene&quot;&gt;
       &lt;polygon id=&quot;scp-fov-lf&quot; class=&quot;fov-lf&quot;&gt;&lt;/polygon&gt;
       &lt;polygon id=&quot;scp-fov-rf&quot; class=&quot;fov-rf&quot;&gt;&lt;/polygon&gt;
       &lt;polygon id=&quot;scp-fov-ls&quot; class=&quot;fov-ls&quot;&gt;&lt;/polygon&gt;
@@ -1214,6 +1244,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;text id=&quot;scp-rf-label&quot; class=&quot;label&quot;&gt;RF&lt;/text&gt;
       &lt;text id=&quot;scp-ls-label&quot; class=&quot;label&quot; text-anchor=&quot;end&quot;&gt;LS&lt;/text&gt;
       &lt;text id=&quot;scp-rs-label&quot; class=&quot;label&quot;&gt;RS&lt;/text&gt;
+      &lt;/g&gt;
     &lt;/svg&gt;
       &lt;/figure&gt;
       &lt;div class=&quot;legend text-small text-muted&quot; aria-label=&quot;视场颜色说明&quot;&gt;
@@ -1315,9 +1346,14 @@ html&gt;body{padding:0}&lt;/style&gt;
       const byId = (id) =&gt; root.querySelector(&#x27;#&#x27; + id);
       const scale = 1.52;
       const origin = { x: 380, y: 260 };
-      const far = 2200;
+      const far = 100000;
       const halfFov = 40;
       const headCenter = { x: 0, y: -190 };
+      const viewBoxSize = { width: 760, height: 840 };
+      const viewState = { scale: 1, x: 0, y: 0 };
+      const minViewScale = 0.15;
+      const maxViewScale = 8;
+      let activePointer = null;
 
       const leftTrack = [
         { x: -30, y: 0 },
@@ -1379,6 +1415,87 @@ html&gt;body{padding:0}&lt;/style&gt;
         x: point.x - headCenter.x,
         y: point.y - headCenter.y
       });
+
+      function applyViewTransform() {
+        byId(&#x27;scp-scene&#x27;).setAttribute(
+          &#x27;transform&#x27;,
+          &#x27;translate(&#x27; + format(viewState.x, 3) + &#x27; &#x27; + format(viewState.y, 3) + &#x27;) scale(&#x27; + format(viewState.scale, 4) + &#x27;)&#x27;
+        );
+        byId(&#x27;scp-zoom-value&#x27;).textContent = Math.round(viewState.scale * 100) + &#x27;%&#x27;;
+      }
+
+      function clientToSvgPoint(clientX, clientY) {
+        const bounds = byId(&#x27;scp-planner-svg&#x27;).getBoundingClientRect();
+        return {
+          x: (clientX - bounds.left) * viewBoxSize.width / bounds.width,
+          y: (clientY - bounds.top) * viewBoxSize.height / bounds.height
+        };
+      }
+
+      function setZoomAt(nextScale, anchor) {
+        const clampedScale = Math.min(maxViewScale, Math.max(minViewScale, nextScale));
+        const scenePoint = {
+          x: (anchor.x - viewState.x) / viewState.scale,
+          y: (anchor.y - viewState.y) / viewState.scale
+        };
+        viewState.scale = clampedScale;
+        viewState.x = anchor.x - scenePoint.x * clampedScale;
+        viewState.y = anchor.y - scenePoint.y * clampedScale;
+        applyViewTransform();
+      }
+
+      function zoomBy(factor) {
+        setZoomAt(viewState.scale * factor, {
+          x: viewBoxSize.width / 2,
+          y: viewBoxSize.height / 2
+        });
+      }
+
+      function resetView() {
+        viewState.scale = 1;
+        viewState.x = 0;
+        viewState.y = 0;
+        applyViewTransform();
+      }
+
+      function bindCanvasNavigation() {
+        const svg = byId(&#x27;scp-planner-svg&#x27;);
+        svg.addEventListener(&#x27;wheel&#x27;, (event) =&gt; {
+          event.preventDefault();
+          const anchor = clientToSvgPoint(event.clientX, event.clientY);
+          setZoomAt(viewState.scale * Math.exp(-event.deltaY * 0.0015), anchor);
+        }, { passive: false });
+        svg.addEventListener(&#x27;pointerdown&#x27;, (event) =&gt; {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          svg.setPointerCapture(event.pointerId);
+          activePointer = {
+            id: event.pointerId,
+            clientX: event.clientX,
+            clientY: event.clientY
+          };
+          svg.classList.add(&#x27;is-panning&#x27;);
+        });
+        svg.addEventListener(&#x27;pointermove&#x27;, (event) =&gt; {
+          if (!activePointer || activePointer.id !== event.pointerId) return;
+          const bounds = svg.getBoundingClientRect();
+          viewState.x += (event.clientX - activePointer.clientX) * viewBoxSize.width / bounds.width;
+          viewState.y += (event.clientY - activePointer.clientY) * viewBoxSize.height / bounds.height;
+          activePointer.clientX = event.clientX;
+          activePointer.clientY = event.clientY;
+          applyViewTransform();
+        });
+        const endPan = (event) =&gt; {
+          if (!activePointer || activePointer.id !== event.pointerId) return;
+          activePointer = null;
+          svg.classList.remove(&#x27;is-panning&#x27;);
+        };
+        svg.addEventListener(&#x27;pointerup&#x27;, endPan);
+        svg.addEventListener(&#x27;pointercancel&#x27;, endPan);
+        byId(&#x27;scp-zoom-out&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; zoomBy(1 / 1.25));
+        byId(&#x27;scp-zoom-in&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; zoomBy(1.25));
+        byId(&#x27;scp-reset-view&#x27;).addEventListener(&#x27;click&#x27;, resetView);
+      }
 
       function pathData(points, close = false) {
         const mapped = points.map(map);
@@ -2062,6 +2179,8 @@ html&gt;body{padding:0}&lt;/style&gt;
       }
 
       setStaticGeometry();
+      bindCanvasNavigation();
+      applyViewTransform();
       bindPairedInputs(&#x27;scp-distance&#x27;, &#x27;scp-distance-number&#x27;);
       bindPairedInputs(&#x27;scp-ls-position&#x27;, &#x27;scp-ls-position-number&#x27;);
       bindPairedInputs(&#x27;scp-ls-offset&#x27;, &#x27;scp-ls-offset-number&#x27;);
